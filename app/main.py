@@ -19,6 +19,15 @@ app = FastAPI(title="Churn ROI", docs_url=None, redoc_url=None)
 # that, so gzip turns the one heavy download into a fast one on the free tier.
 app.add_middleware(GZipMiddleware, minimum_size=1024)
 
+
+@app.get("/api/health")
+def health():
+    """Uptime and keep-warm target, so a monitor can ping something cheaper
+    than the full static page or its data files."""
+    return {"status": "ok"}
+
+
 # html=True serves index.html at "/", other paths resolve to files under static/,
-# and anything missing returns a 404.
+# and anything missing returns a 404. Routes must be declared before this mount,
+# since "/" is a catch-all for everything StaticFiles doesn't 404 on.
 app.mount("/", StaticFiles(directory=str(STATIC_DIR), html=True), name="static")
