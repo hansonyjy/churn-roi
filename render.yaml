@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: churn-roi
+    runtime: python
+    plan: free
+    # The build deliberately installs only the serving dependencies, not
+    # requirements.txt. Training deps (lightgbm, pandas, shap, scikit-learn) are
+    # never imported at serve time: the model is trained offline by
+    # `python -m src.build`, which commits the three JSON artifacts into
+    # app/static/data/. The CSV is gitignored, so Render could not train anyway.
+    # Skipping the heavy installs keeps free-tier build minutes low.
+    buildCommand: pip install fastapi "uvicorn[standard]"
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.7

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Churn ROI</title>
+  <meta name="description" content="A retention budget allocator. The model predicts who will leave, the decision layer decides who is worth saving, given a budget.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <main>
+
+    <!-- Header -->
+    <header class="section">
+      <h1>Churn ROI</h1>
+      <p class="dek">A retention budget allocator. The model predicts who will leave, the decision layer decides who is worth saving, given a budget.</p>
+      <p class="muted">10,000 retail banking customers, calibrated LightGBM, out of fold scores. Every number on this page is computed, not invented.</p>
+    </header>
+
+    <!-- Controls -->
+    <section class="section" aria-label="Assumptions">
+      <h2>Set The Assumptions</h2>
+      <div class="controls">
+        <div class="control">
+          <label for="cost">Offer cost <output id="cost-out" for="cost">$50</output></label>
+          <input type="range" id="cost" min="10" max="150" step="5" value="50">
+        </div>
+        <div class="control">
+          <label for="rate">Offer success rate <output id="rate-out" for="rate">30%</output></label>
+          <input type="range" id="rate" min="0.05" max="0.60" step="0.01" value="0.30">
+        </div>
+        <div class="control">
+          <label for="budget">Budget <output id="budget-out" for="budget">$25,000</output></label>
+          <input type="range" id="budget" min="5000" max="100000" step="1000" value="25000">
+        </div>
+      </div>
+    </section>
+
+    <!-- Headline block -->
+    <section class="section" aria-label="Projected return">
+      <div class="headline-grid">
+        <div class="stat">
+          <p class="stat-label">Projected Expected Net Return</p>
+          <p class="figure" id="ev-figure">$0</p>
+          <p class="caption">Expected value at current assumptions, not a realized backtest.</p>
+        </div>
+        <div class="stat">
+          <p class="stat-label">Offers</p>
+          <p class="figure" id="offers-figure">0 sent of 0 allowed</p>
+          <p class="caption" id="offers-callout"></p>
+        </div>
+      </div>
+      <p class="lift-line" id="lift-line"></p>
+    </section>
+
+    <!-- Save list -->
+    <section class="section" aria-label="Save list">
+      <h2>The Save List</h2>
+      <p class="caption" id="list-caption">Showing 0 of 0 selected.</p>
+      <div class="table-scroll">
+        <table id="save-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Customer</th>
+              <th>P(Churn)</th>
+              <th>Value</th>
+              <th>Expected Value</th>
+              <th>Why</th>
+            </tr>
+          </thead>
+          <tbody id="save-body"></tbody>
+        </table>
+      </div>
+      <button type="button" id="show-more" class="show-more" hidden>Show 100 More</button>
+    </section>
+
+    <!-- Performance panel -->
+    <section class="section" aria-label="Model performance">
+      <h2>Is the Model Any Good?</h2>
+      <p class="stat-line" id="perf-line">PR-AUC 0.699 against a 0.204 no-skill baseline. ROC-AUC 0.861. Brier 0.103.</p>
+      <p class="muted" id="perf-baseline">Logistic regression baseline: PR-AUC 0.464.</p>
+
+      <div class="chart-grid">
+        <figure class="chart-block">
+          <figcaption class="caption">Calibration. Dots on the dashed diagonal mean predicted probabilities match observed churn rates.</figcaption>
+          <div class="chart-box chart-260"><canvas id="calibration-chart"></canvas></div>
+        </figure>
+        <figure class="chart-block">
+          <figcaption class="caption">Precision recall. The dashed line is the 0.204 no-skill baseline.</figcaption>
+          <div class="chart-box chart-260"><canvas id="pr-chart"></canvas></div>
+        </figure>
+      </div>
+
+      <figure class="chart-block">
+        <figcaption class="caption">Feature importance, mean absolute SHAP value on a plain LightGBM fit.</figcaption>
+        <div class="chart-box chart-320"><canvas id="shap-chart"></canvas></div>
+      </figure>
+
+      <p class="body-note">A few real quirks show up. Age is the strongest single driver. NumOfProducts is nonlinear: 2 products is safest at 7.6% churn, 3 products churns at 82.7%, and 4 products at 100%. Germany churns at roughly twice the rate of France and Spain, and about a third of customers hold a zero balance.</p>
+    </section>
+
+    <!-- Footer -->
+    <footer class="section footer">
+      <p>Value proxy: <code>value_saved = 120 * num_products + 0.02 * balance</code>. The $120 per product is an annual relationship value order of magnitude for retail banking (fees, interchange, cross-sell). The 2% is a net interest margin on deposits. A pure balance proxy would degenerate on the roughly one third of customers who hold a zero balance, valuing them at zero, so the per-product term keeps multi-product customers visible to the engine.</p>
+      <p>This targets customers by churn probability, not persuadability. True incrementality would need uplift modeling and treatment data this dataset does not have.</p>
+      <!-- Update this href once the repo is pushed to GitHub. -->
+      <p><a href="#" id="repo-link">Source on GitHub</a></p>
+    </footer>
+
+  </main>
+</body>
+</html>

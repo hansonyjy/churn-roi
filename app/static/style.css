@@ -1,0 +1,246 @@
+/* Churn ROI. Editorial-finance research-note look. Fixed light background,
+   no dark-mode toggle, no cards. Title Case headings, no em-dashes anywhere. */
+
+:root {
+  --bg: #FAF7F2;        /* warm off-white page background, no cards */
+  --ink: #1C1B18;       /* body text, headings */
+  --muted: #6E6A61;     /* captions, secondary text */
+  --hairline: #E4DFD5;  /* section rules, table borders, chart gridlines */
+  --accent: #177A53;    /* links, slider accent, positive figures, chart series */
+  --negative: #B04A34;  /* negative EV values, under-spend callout */
+
+  --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+main {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 40px 24px 64px;
+}
+
+/* Sections separated by generous space and a hairline rule. */
+.section {
+  padding-top: 64px;
+}
+.section:first-child {
+  padding-top: 0;
+}
+.section + .section {
+  border-top: 1px solid var(--hairline);
+}
+
+/* Typography */
+h1 {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 34px;
+  line-height: 1.15;
+  margin: 0 0 12px;
+  letter-spacing: -0.01em;
+}
+h2 {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 22px;
+  margin: 0 0 16px;
+}
+.dek {
+  font-size: 18px;
+  margin: 0 0 12px;
+  max-width: 60ch;
+}
+.muted {
+  color: var(--muted);
+  margin: 0;
+  max-width: 68ch;
+}
+.caption {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0 0 8px;
+}
+a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+a:hover { opacity: 0.8; }
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+  background: rgba(23, 122, 83, 0.07);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* Controls */
+.controls {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.control label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 8px;
+  gap: 8px;
+}
+.control output {
+  color: var(--ink);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+input[type="range"] {
+  width: 100%;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+/* Headline block */
+.headline-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 24px;
+}
+.stat-label {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0 0 4px;
+}
+.figure {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 40px;
+  line-height: 1.1;
+  margin: 0 0 8px;
+  font-variant-numeric: tabular-nums;
+}
+#offers-figure {
+  font-size: 28px;
+}
+.stat .caption { margin-bottom: 0; }
+.callout-negative {
+  color: var(--negative);
+}
+.lift-line {
+  margin: 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--hairline);
+  font-variant-numeric: tabular-nums;
+  max-width: 72ch;
+}
+
+/* Save list table */
+.table-scroll {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+  font-size: 15px;
+}
+th, td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--hairline);
+  white-space: nowrap;
+}
+th {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+td.why {
+  white-space: normal;
+  color: var(--muted);
+  min-width: 180px;
+}
+.pos { color: var(--accent); }
+.neg { color: var(--negative); }
+
+.show-more {
+  margin-top: 16px;
+  font-family: var(--sans);
+  font-size: 14px;
+  color: var(--accent);
+  background: none;
+  border: 1px solid var(--hairline);
+  border-radius: 4px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+.show-more:hover {
+  border-color: var(--accent);
+}
+
+/* Performance panel */
+.stat-line {
+  font-variant-numeric: tabular-nums;
+  margin: 0 0 4px;
+}
+#perf-baseline { margin-bottom: 24px; }
+.chart-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 40px;
+}
+.chart-block {
+  margin: 0 0 40px;
+}
+.chart-grid .chart-block {
+  margin-bottom: 0;
+}
+.chart-box {
+  position: relative;
+  width: 100%;
+}
+.chart-260 { height: 260px; }
+.chart-320 { height: 320px; }
+.body-note {
+  max-width: 68ch;
+  margin: 8px 0 0;
+}
+
+/* Footer */
+.footer p {
+  font-size: 13px;
+  color: var(--muted);
+  max-width: 78ch;
+}
+.footer code {
+  font-size: 12px;
+}
+
+/* One breakpoint at 640px */
+@media (max-width: 640px) {
+  main {
+    padding: 24px 16px 40px;
+  }
+  .section {
+    padding-top: 40px;
+  }
+  h1 { font-size: 28px; }
+  .controls { grid-template-columns: 1fr; }
+  .headline-grid { grid-template-columns: 1fr; gap: 24px; }
+  .chart-grid { grid-template-columns: 1fr; gap: 40px; }
+}

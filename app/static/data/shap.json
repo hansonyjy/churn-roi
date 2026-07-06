@@ -1,0 +1,52 @@
+{
+  "feature_importance": [
+    {
+      "feature": "Age",
+      "mean_abs_shap": 0.8651440681304099
+    },
+    {
+      "feature": "NumOfProducts",
+      "mean_abs_shap": 0.8168961317395489
+    },
+    {
+      "feature": "IsActiveMember",
+      "mean_abs_shap": 0.4330621954504545
+    },
+    {
+      "feature": "Balance",
+      "mean_abs_shap": 0.2949202894249026
+    },
+    {
+      "feature": "Gender",
+      "mean_abs_shap": 0.2669622153982349
+    },
+    {
+      "feature": "Geography_Germany",
+      "mean_abs_shap": 0.1520380910439926
+    },
+    {
+      "feature": "EstimatedSalary",
+      "mean_abs_shap": 0.13315003461639982
+    },
+    {
+      "feature": "CreditScore",
+      "mean_abs_shap": 0.10869019820357123
+    },
+    {
+      "feature": "Tenure",
+      "mean_abs_shap": 0.06794628464754165
+    },
+    {
+      "feature": "Geography_France",
+      "mean_abs_shap": 0.03930182619486272
+    },
+    {
+      "feature": "Geography_Spain",
+      "mean_abs_shap": 0.019436994125069322
+    },
+    {
+      "feature": "HasCrCard",
+      "mean_abs_shap": 0.017717120457513124
+    }
+  ]
+}
