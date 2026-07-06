@@ -1,13 +1,15 @@
 # Churn ROI
 
-A customer with a 95 percent chance of leaving can be the wrong customer to save. If they are worth little, the retention offer costs more than it recovers, while a 60 percent risk, high-value customer down the list is a clearly positive bet. This project takes a calibrated churn model and wraps it in the layer most churn projects skip: an expected-value decision engine that decides, under a fixed budget, who is actually worth spending on and what net return to expect.
+Predicting churn is the easy half. This project wraps a calibrated churn model in an expected-value decision engine that decides, under a fixed retention budget, which customers are actually worth saving and what the money should return.
 
-**Live demo:** [churn-roi.onrender.com](https://churn-roi.onrender.com) (free tier, first load after idle takes about a minute)
+**Live demo:** [churn-roi.onrender.com](https://churn-roi.onrender.com) (free tier, so the first load after idle takes about a minute while the server wakes up)
 **Code:** [github.com/hansonyjy/churn-roi](https://github.com/hansonyjy/churn-roi)
+
+The part that makes this interesting: a customer with a 95 percent chance of leaving can be the wrong customer to save. If they are worth little, the retention offer costs more than it recovers, while a 60 percent risk, high-value customer further down the list is a clearly positive bet. Most churn projects stop at the probability. The useful decisions all happen after it.
 
 ## The Headline Result
 
-Most portfolio projects quote one flattering number. The honest version is a range, so the headline here is a sensitivity grid: EV-based targeting versus risk-based targeting at a $25,000 budget, across a 3x3 grid of offer economics, computed on real out-of-fold predictions against true labels.
+Most projects quote one flattering number. The honest version is a range, so the headline here is a sensitivity grid: EV-based targeting versus risk-based targeting at a $25,000 budget, across a 3x3 grid of offer economics, computed on real out-of-fold predictions against true labels.
 
 | Offer cost | 20% success | 30% success | 40% success |
 | ---------- | ----------- | ----------- | ----------- |
@@ -54,7 +56,3 @@ value_saved = 120 * num_products + 0.02 * balance
 The $120 per product is an annual relationship value order of magnitude for retail banking (fees, interchange, cross-sell); the 2% is a net interest margin on deposits. Both are documented, configurable, and meant as reasonable orders of magnitude, not exact figures. The per-product term is load-bearing: about 36% of customers hold a zero balance, so a pure balance proxy would value them at zero, EV targeting would ignore them by construction, and the measured lift would be partly an artifact of the proxy.
 
 Incrementality caveat: this targets by churn probability, not persuadability. True incrementality needs uplift modeling and treatment data this dataset does not have. The backtest assumes an offer saves a would-be churner with probability `offer_success_rate` and does nothing for a non-churner, a stated simplification, not a claim of causal effect.
-
-**Portfolio blurb:**
-
-> The model predicts who will leave; the decision layer decides who is worth saving under a fixed retention budget. Ranking customers by expected value rather than raw risk beat naive risk targeting by 20 to 41 percent across a grid of offer economics on 10,000 customers. A live-slider demo recomputes the ranking, the budget stop, and the projected return in the browser, so you can change the assumptions on the spot.
