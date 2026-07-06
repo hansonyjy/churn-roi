@@ -58,28 +58,6 @@
       <p class="lift-line" id="lift-line"></p>
     </section>
 
-    <!-- Save list -->
-    <section class="section" aria-label="Save list">
-      <h2>The Save List</h2>
-      <p class="caption" id="list-caption">Showing 0 of 0 selected.</p>
-      <div class="table-scroll">
-        <table id="save-table">
-          <thead>
-            <tr>
-              <th>Rank</th>
-              <th>Customer</th>
-              <th>P(Churn)</th>
-              <th>Value</th>
-              <th>Expected Value</th>
-              <th>Why</th>
-            </tr>
-          </thead>
-          <tbody id="save-body"></tbody>
-        </table>
-      </div>
-      <button type="button" id="show-more" class="show-more" hidden>Show 100 More</button>
-    </section>
-
     <!-- Performance panel -->
     <section class="section" aria-label="Model performance">
       <h2>Is the Model Any Good?</h2>
@@ -103,6 +81,28 @@
       </figure>
 
       <p class="body-note">A few real quirks show up. Age is the strongest single driver. NumOfProducts is nonlinear: 2 products is safest at 7.6% churn, 3 products churns at 82.7%, and 4 products at 100%. Germany churns at roughly twice the rate of France and Spain, and about a third of customers hold a zero balance.</p>
+    </section>
+
+    <!-- Save list -->
+    <section class="section" aria-label="Save list">
+      <h2>The Save List</h2>
+      <p class="caption" id="list-caption">Showing 0 of 0 selected.</p>
+      <div class="table-scroll">
+        <table id="save-table">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Customer</th>
+              <th>P(Churn)</th>
+              <th>Value</th>
+              <th>Expected Value</th>
+              <th>Why</th>
+            </tr>
+          </thead>
+          <tbody id="save-body"></tbody>
+        </table>
+      </div>
+      <button type="button" id="show-more" class="show-more" hidden>Show 10 More</button>
     </section>
 
     <!-- Footer -->

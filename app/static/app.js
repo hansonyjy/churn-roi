@@ -12,7 +12,7 @@ const pct = new Intl.NumberFormat("en-US", {
   style: "percent", maximumFractionDigits: 0,
 });
 
-const PAGE = 100;
+const PAGE = 10;
 const GRID_COSTS = [25, 50, 100];
 const GRID_RATES = [0.2, 0.3, 0.4];
 
