@@ -55,28 +55,6 @@ The $120 per product is an annual relationship value order of magnitude for reta
 
 Incrementality caveat: this targets by churn probability, not persuadability. True incrementality needs uplift modeling and treatment data this dataset does not have. The backtest assumes an offer saves a would-be churner with probability `offer_success_rate` and does nothing for a non-churner, a stated simplification, not a claim of causal effect.
 
-## Run It Locally
-
-1. Get `Churn_Modelling.csv` (the classic Kaggle churn dataset) and save it to `data/churn.csv`. This file is gitignored.
-2. `pip install -r requirements.txt`
-3. `python -m src.build` to train, score, backtest, and write the three JSON artifacts into `app/static/data/`.
-4. `uvicorn app.main:app --reload` and open http://localhost:8000.
-5. `pytest` to run the decision-math tests.
-
-## Deployment
-
-Deployed on the Render free tier. The build installs only `fastapi` and `uvicorn[standard]`: the artifacts are already committed and the CSV is gitignored, so nothing trains at deploy time and free-tier build minutes stay low. The free tier spins down when idle, so the first hit after a quiet period takes about a minute. Open the link five minutes before a live demo.
-
-## What This Demonstrates
-
-Supervised ML on imbalanced data, probability calibration, out-of-fold rigor with no leakage, decision economics under a budget constraint, and honest causal reasoning about what a churn score can and cannot claim.
-
-## Resume Bullet and Portfolio Blurb
-
-**Resume bullet:**
-
-> Built a churn retention decision engine (calibrated LightGBM, out-of-fold scoring, expected-value budget allocation with a negative-EV stop). EV-based targeting beat risk-based targeting by 20 to 41 percent in backtests across a 3x3 grid of offer economics on 10,000 customers, deployed as an instant client-side what-if tool (FastAPI, vanilla JS, Render).
-
 **Portfolio blurb:**
 
 > The model predicts who will leave; the decision layer decides who is worth saving under a fixed retention budget. Ranking customers by expected value rather than raw risk beat naive risk targeting by 20 to 41 percent across a grid of offer economics on 10,000 customers. A live-slider demo recomputes the ranking, the budget stop, and the projected return in the browser, so you can change the assumptions on the spot.
