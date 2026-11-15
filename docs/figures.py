@@ -82,7 +82,7 @@ open(f"{ROOT}/docs/img/sensitivity.svg", "w").write("\n".join(s))
 W, H = 1200, 470
 a = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}" role="img" aria-labelledby="at ad">']
 a.append('<title id="at">Architecture: offline training, static serving, in-browser decisions</title>')
-a.append('<desc id="ad">Offline: churn.csv goes into python -m src.build, which runs 5-fold out-of-fold calibrated LightGBM scoring, the backtest and the sensitivity grid, and writes three JSON artifacts committed to git. Online: FastAPI on Render only serves static files. In the browser, the sliders recompute EV for all 10,000 customers, rank by EV, and stop at the budget cap or when EV reaches zero, producing the save list.</desc>')
+a.append('<desc id="ad">Offline: churn.csv goes into python -m src.build, which runs 5-fold out-of-fold calibrated LightGBM scoring, the backtest and the sensitivity grid, and writes three JSON artifacts committed to git. Online: GitHub Pages serves the static files, with no server and no inference. In the browser, the sliders recompute EV for all 10,000 customers, rank by EV, and stop at the budget cap or when EV reaches zero, producing the save list.</desc>')
 a.append(f'<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="{INK2}"/></marker></defs>')
 a.append(f'<rect width="{W}" height="{H}" rx="18" fill="{PAPER}"/>')
 # zones
@@ -102,16 +102,16 @@ def box(x, y, w, h, title, lines, kind="plain"):
 a += box(56, 84, 220, 96, "churn.csv", ["10,000 customers", "gitignored, never deployed"])
 a += box(56, 222, 492, 142, "python -m src.build", ["5-fold out-of-fold scoring", "isotonic-calibrated LightGBM", "backtest: EV vs risk vs random", "3x3 sensitivity grid, SHAP"], "dark")
 a += box(316, 84, 232, 96, "3 JSON artifacts", ["scored_customers.json", "metrics.json, shap.json"])
-a.append(f'<text x="56" y="414" font-family="{SANS}" font-size="14" fill="{MUTED}">Training never runs on the server. The artifacts are committed to git.</text>')
+a.append(f'<text x="56" y="414" font-family="{SANS}" font-size="14" fill="{MUTED}">Training never runs online. The artifacts are committed to git.</text>')
 
-a += box(628, 84, 250, 96, "FastAPI on Render", ["static files + gzip", "no inference endpoint"])
+a += box(628, 84, 250, 96, "GitHub Pages", ["static files, gzipped", "no server, no inference"])
 a += box(628, 222, 516, 186, "Your browser, on every slider move", [
     "EV = P(churn) × value × success − cost",
     "for all 10,000 customers",
     "rank by EV, not by risk",
     "stop at the budget cap or EV ≤ 0",
     "→ save list, KPIs, backtest grid"], "accent")
-a += box(910, 84, 234, 96, "Commit to main", ["Render auto-deploys", "/api/health for uptime"])
+a += box(910, 84, 234, 96, "Commit to main", ["GitHub Actions deploys", "app/static/ to Pages"])
 
 arrows = [((166, 180), (166, 222)), ((420, 222), (420, 180)), ((548, 132), (628, 132)), ((753, 180), (753, 222)), ((910, 132), (878, 132))]
 for (x1, y1), (x2, y2) in arrows:
