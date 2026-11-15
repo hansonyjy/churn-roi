@@ -1,7 +1,7 @@
 <p align="center"><img src="docs/img/demo.gif" alt="Churn ROI in action: the offer cost drops from $50 to $10, the budget rises from $25,000 to $100,000, and the engine sends only 6,984 of the 10,000 offers the budget allows because the rest would lose money. Then a sensitivity grid cell loads the $100 offer, 40% success scenario, where EV targeting beats risk targeting by 35.5%" width="100%"></p>
 
 <p align="center">
-  <a href="https://churn-roi.onrender.com"><img src="https://img.shields.io/badge/live%20demo-churn--roi.onrender.com-0f8f62" alt="Live demo"></a>
+  <a href="https://hansonyjy.github.io/churn-roi/"><img src="https://img.shields.io/badge/live%20demo-hansonyjy.github.io%2Fchurn--roi-0f8f62" alt="Live demo"></a>
   <img src="https://img.shields.io/badge/python-3.13-3776AB" alt="Python 3.13">
   <img src="https://img.shields.io/badge/model-calibrated%20LightGBM-14261f" alt="Calibrated LightGBM">
   <img src="https://img.shields.io/badge/PR--AUC-0.699%20vs%200.204%20baseline-0b6e4b" alt="PR-AUC 0.699 against a 0.204 baseline">
@@ -14,7 +14,7 @@ Churn ROI scores 10,000 retail banking customers with a calibrated churn model, 
 
 I designed and built it end to end: the model, the decision engine, the backtest that grades it against true labels, and the app a retention manager would actually use. I build with Claude Code as a pair programmer, and the history shows how: small commits, each with its reason in the message.
 
-**Live demo:** [churn-roi.onrender.com](https://churn-roi.onrender.com). It runs on Render's free tier, so the first load after a quiet spell takes about a minute while the server wakes up.
+**Live demo:** [hansonyjy.github.io/churn-roi](https://hansonyjy.github.io/churn-roi/). It is a static site on GitHub Pages, so there is no server to wake up.
 
 ## What You Can Do With It
 
@@ -34,12 +34,12 @@ The pattern is itself a finding. As offers get more expensive, the negative-EV s
 
 ## How It Works
 
-<p align="center"><img src="docs/img/architecture.svg" alt="Architecture: offline, churn.csv goes into python -m src.build, which runs 5-fold out-of-fold calibrated LightGBM scoring, the backtest and the sensitivity grid, and writes three JSON artifacts committed to git. Online, FastAPI on Render only serves static files, and the browser recomputes EV for every customer on each slider move" width="100%"></p>
+<p align="center"><img src="docs/img/architecture.svg" alt="Architecture: offline, churn.csv goes into python -m src.build, which runs 5-fold out-of-fold calibrated LightGBM scoring, the backtest and the sensitivity grid, and writes three JSON artifacts committed to git. Online, GitHub Pages serves the static files with no server, and the browser recomputes EV for every customer on each slider move" width="100%"></p>
 
 - **Every customer is scored by a model that never saw them.** Stratified 5-fold cross-validation fits an isotonically calibrated LightGBM on four folds and scores the held-out fifth. The save list and the backtest both cover the whole base, with no leakage.
 - **Rank by expected value.** For each customer, `EV = P(churn) * value_saved * success_rate - offer_cost`. Sorting by EV instead of raw churn probability is the entire edge over a standard churn model.
 - **The budget is a cap, not a quota.** Selection stops at `floor(budget / offer_cost)` offers or at the first customer whose EV is not positive, whichever comes first.
-- **Training is offline, serving is static.** `python -m src.build` writes three JSON artifacts that are committed to git. FastAPI on Render only hands out files, so there is no inference on request: the demo is fast, cheap and cannot fall over under load.
+- **Training is offline, serving is static.** `python -m src.build` writes three JSON artifacts that are committed to git. GitHub Pages only hands out files, so there is no server and no inference on request: the demo loads fast, costs nothing to host and cannot fall over under load.
 
 ## What the Output Looks Like
 
@@ -88,21 +88,22 @@ The tree model wins largely because NumOfProducts is sharply nonlinear: 2 produc
 ## Engineering Notes
 
 - **Instant re-ranking.** Probabilities and values live in typed arrays, each slider move runs one stable sort, and dense input is coalesced to one recompute per frame. The first render runs synchronously, because browsers pause animation frames in background tabs.
-- **One heavy file, compressed.** `scored_customers.json` is 1.3 MB of numeric text. Gzip serves it at 165 KB.
-- **Lean deploys.** Render installs only FastAPI and uvicorn. The training stack (LightGBM, pandas, SHAP, scikit-learn) is never imported at serve time.
-- **Cache-safe releases.** CSS and JS links carry a version query, and HTML is served with `Cache-Control: no-cache`, so a deploy never pairs a cached page with new assets.
-- **Deploys you can check.** `/api/health` gives an uptime monitor something cheap to hit. The live site once sat on its first commit for four months because Render's GitHub app had lost access to the repo and pushes never reached it, so that access is now the first thing to check when a push does not deploy.
+- **One heavy file, compressed.** `scored_customers.json` is 1.3 MB of numeric text. GitHub Pages gzips it on the fly to under 180 KB.
+- **No build step.** A GitHub Actions workflow publishes `app/static/` exactly as committed. The training stack (LightGBM, pandas, SHAP, scikit-learn) never leaves my laptop.
+- **Cache-safe releases.** CSS and JS links carry a version query, so a browser holding the last release's files fetches the new ones as soon as it sees the new page. GitHub Pages caches pages for at most 10 minutes (`max-age=600`), so a release reaches every visitor within that window.
+- **Deploys you can check.** Every push to `main` that touches `app/static/` runs the Pages workflow, and the Actions tab shows which commit is live. I moved here from Render's free tier, which made the first visit after a quiet spell wait about a minute, and where the live site once sat on its first commit for four months because Render's GitHub app had lost access to the repo.
 
 ## Repository Map
 
 ```
 src/              data, OOF calibrated LightGBM, evaluation and SHAP, decision engine, build
-app/main.py       FastAPI: static files, gzip, /api/health, HTML revalidation
+app/main.py       optional FastAPI server for self-hosting, not used by the live demo
 app/static/       the app: index.html, style.css (palette tokens), app.js (live recompute, charts)
 app/static/data/  the three committed artifacts
 tests/            EV math, budget cap, negative-EV exclusion, EV beats random on real data
 docs/             README figures and the scripts that generate them
-render.yaml       Render blueprint, serving dependencies only
+.github/          Pages workflow that publishes app/static/
+render.yaml       Render blueprint for the optional self-hosted path
 ```
 
 ## About
