@@ -20,6 +20,17 @@ app = FastAPI(title="Churn ROI", docs_url=None, redoc_url=None)
 app.add_middleware(GZipMiddleware, minimum_size=1024)
 
 
+@app.middleware("http")
+async def revalidate_html(request, call_next):
+    """Make browsers revalidate the HTML on every visit. CSS and JS are
+    referenced with a ?v= query, so a fresh index.html always pulls the
+    matching assets instead of pairing a cached page with new files."""
+    response = await call_next(request)
+    if response.headers.get("content-type", "").startswith("text/html"):
+        response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
 @app.get("/api/health")
 def health():
     """Uptime and keep-warm target, so a monitor can ping something cheaper

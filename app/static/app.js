@@ -8,20 +8,25 @@
 const usd = new Intl.NumberFormat("en-US", {
   style: "currency", currency: "USD", maximumFractionDigits: 0,
 });
+const usdCompact = new Intl.NumberFormat("en-US", {
+  style: "currency", currency: "USD", notation: "compact", maximumFractionDigits: 1,
+});
 const pct = new Intl.NumberFormat("en-US", {
   style: "percent", maximumFractionDigits: 0,
 });
+const int = new Intl.NumberFormat("en-US");
 
 const PAGE = 10;
-const GRID_COSTS = [25, 50, 100];
-const GRID_RATES = [0.2, 0.3, 0.4];
+const $ = (id) => document.getElementById(id);
 
 // State populated on load.
 let N = 0;
 let p, v, ev, order;   // Float64Array p, v, ev; Int32Array order
 let customers = [];    // raw display objects
-let why = [];          // precomputed reason strings, slider-independent
+let signals = [];      // precomputed signal chips, slider-independent
 let metrics = null;
+let grid = [];         // sensitivity grid cells
+let gridCosts = [], gridRates = [];
 
 let selected = [];     // current selection, EV descending
 let shown = 0;         // rows currently rendered in the table
@@ -49,25 +54,29 @@ function nearest(value, candidates) {
   return best;
 }
 
-// Static per-customer reason string, computed once at load.
-function buildWhy(c) {
-  let risk;
-  if (c.p_churn >= 0.7) risk = "Very likely to leave";
-  else if (c.p_churn >= 0.4) risk = "Elevated churn risk";
-  else risk = "Moderate risk";
+// Static per-customer signal chips, computed once at load.
+// Each chip is [label, tone] where tone maps to a CSS modifier.
+function buildSignals(c) {
+  const out = [];
+  if (c.p_churn >= 0.7) out.push(["Very likely to leave", "hot"]);
+  else if (c.p_churn >= 0.4) out.push(["Elevated risk", "warm"]);
+  else out.push(["Moderate risk", "dim"]);
 
-  let valPhrase;
-  if (c.balance >= 100000) valPhrase = "large deposit balance";
-  else if (c.num_products >= 2) valPhrase = "multi-product relationship";
-  else valPhrase = "single-product customer";
+  if (c.balance >= 100000) out.push(["Large balance", ""]);
+  else if (c.num_products >= 2) out.push(["Multi-product", ""]);
+  else out.push(["Single product", ""]);
 
-  const quals = [];
-  if (c.geography === "Germany") quals.push("Germany");
-  if (c.is_active === 0) quals.push("inactive");
+  if (c.geography === "Germany") out.push(["Germany", "dim"]);
+  if (c.is_active === 0) out.push(["Inactive", "dim"]);
+  return out;
+}
 
-  let s = risk + ", " + valPhrase;
-  if (quals.length) s += " (" + quals.join(", ") + ")";
-  return s;
+function readControls() {
+  return {
+    cost: Number($("cost").value),
+    rate: Number($("rate").value),
+    budget: Number($("budget").value),
+  };
 }
 
 // The core recompute, run on every slider input (coalesced to one per frame).
@@ -92,44 +101,128 @@ function recompute(cost, rate, budget) {
     sumEV += ev[idx];
   }
 
-  renderHeadline(sumEV, selected.length, cap);
-  renderLift(cost, rate);
+  renderKpis(sumEV, selected.length, cap, cost, budget);
+  renderBacktest(cost, rate, budget);
   renderTable(true);
 }
 
-function renderHeadline(sumEV, sent, cap) {
-  document.getElementById("ev-figure").textContent = usd.format(sumEV);
-  document.getElementById("offers-figure").textContent =
-    sent.toLocaleString("en-US") + " sent of " + cap.toLocaleString("en-US") + " allowed";
+// ---- Renderers ----
 
-  const callout = document.getElementById("offers-callout");
-  if (sent < cap) {
-    callout.className = "caption callout-negative";
-    callout.textContent =
-      "The budget allows " + cap.toLocaleString("en-US") + " offers but only " +
-      sent.toLocaleString("en-US") + " clear positive expected value. Spending the rest " +
-      "would destroy value, so the engine stops.";
+function renderKpis(sumEV, sent, cap, cost, budget) {
+  const spend = sent * cost;
+  const under = sent < cap;
+
+  $("ev-figure").textContent = usd.format(sumEV);
+
+  $("offers-sent").textContent = int.format(sent);
+  $("offers-cap").textContent = " / " + int.format(cap);
+  const om = $("offers-meter");
+  om.style.width = (cap ? (sent / cap) * 100 : 0) + "%";
+  om.classList.toggle("is-under", under);
+  const of = $("offers-foot");
+  of.textContent = under
+    ? int.format(cap - sent) + " allowed offers refused."
+    : "Every allowed offer clears positive EV.";
+  of.classList.toggle("is-warn", under);
+
+  $("spend-figure").textContent = usd.format(spend);
+  const sm = $("spend-meter");
+  sm.style.width = Math.min(100, (spend / budget) * 100) + "%";
+  sm.classList.toggle("is-under", under);
+  $("spend-foot").textContent =
+    pct.format(spend / budget) + " of " + usd.format(budget) + (under ? ", rest held back." : ".");
+
+  $("roi-figure").textContent = (spend > 0 ? sumEV / spend : 0).toFixed(1) + "x";
+  $("roi-foot").textContent = sent
+    ? usd.format(sumEV / sent) + " expected net value per offer."
+    : "No offer clears positive EV.";
+
+  const callout = $("offers-callout");
+  if (under) {
+    $("offers-callout-body").textContent =
+      "The budget allows " + int.format(cap) + " offers, but only " + int.format(sent) +
+      " clear positive expected value. Spending the remaining " + usd.format(budget - spend) +
+      " would destroy value, so the engine stops.";
+    callout.hidden = false;
   } else {
-    callout.className = "caption";
-    callout.textContent = "Every allowed offer clears positive expected value.";
+    callout.hidden = true;
   }
 }
 
-function renderLift(cost, rate) {
-  const nc = nearest(cost, GRID_COSTS);
-  const nr = nearest(rate, GRID_RATES);
-  const cell = metrics.decision.sensitivity_grid.find(
-    (r) => r.offer_cost === nc && r.offer_success_rate === nr
-  );
-  const line = document.getElementById("lift-line");
-  if (!cell) { line.textContent = ""; return; }
+function renderBacktest(cost, rate, budget) {
+  const nc = nearest(cost, gridCosts);
+  const nr = nearest(rate, gridRates);
+  const cell = grid.find((r) => r.offer_cost === nc && r.offer_success_rate === nr);
+  if (!cell) return;
 
-  line.textContent =
-    "Backtested at the nearest precomputed scenario (cost " + usd.format(cell.offer_cost) +
-    ", " + pct.format(cell.offer_success_rate) + " success, " + usd.format(cell.budget) +
-    " budget): EV targeting returned " + usd.format(cell.ev.net_value) + " vs " +
-    usd.format(cell.risk.net_value) + " for risk targeting, a lift of " +
-    signedUsd(cell.lift_abs) + " (" + signedPct1(cell.lift_pct) + ").";
+  const exact = nc === cost && Math.abs(nr - rate) < 1e-9 && budget === cell.budget;
+  $("scenario-tag").textContent =
+    (exact ? "" : "Nearest: ") + usd.format(cell.offer_cost) + " · " + pct.format(cell.offer_success_rate) + " success";
+
+  const evN = cell.ev.net_value;
+  const riskN = cell.risk.net_value;
+  const randN = cell.random.net_value_mean;
+  const max = Math.max(evN, riskN, randN, 1);
+  $("bar-ev").style.width = (evN / max) * 100 + "%";
+  $("bar-risk").style.width = (riskN / max) * 100 + "%";
+  $("bar-random").style.width = (Math.max(randN, 0) / max) * 100 + "%";
+  $("bar-ev-val").textContent = usd.format(evN);
+  $("bar-risk-val").textContent = usd.format(riskN);
+  $("bar-random-val").textContent = usd.format(randN);
+
+  const line = $("lift-line");
+  line.innerHTML =
+    "EV targeting returned <strong>" + signedUsd(cell.lift_abs) + " (" + signedPct1(cell.lift_pct) +
+    ")</strong> more than risk targeting, with " + int.format(cell.offers_allowed) +
+    " offers allowed at a " + usd.format(cell.budget) + " budget.";
+
+  document.querySelectorAll(".heat-cell").forEach((btn) => {
+    const on = Number(btn.dataset.cost) === nc && Number(btn.dataset.rate) === nr;
+    btn.classList.toggle("is-active", on);
+    btn.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+}
+
+function buildHeatTable() {
+  const lifts = grid.map((c) => c.lift_pct);
+  const lo = Math.min(...lifts), hi = Math.max(...lifts);
+
+  const headRow = document.querySelector("#heat-table thead tr");
+  gridRates.forEach((r) => {
+    const th = document.createElement("th");
+    th.scope = "col";
+    th.className = "mono";
+    th.textContent = pct.format(r);
+    th.title = "Offer success rate";
+    headRow.appendChild(th);
+  });
+
+  const body = document.querySelector("#heat-table tbody");
+  let html = "";
+  gridCosts.forEach((c) => {
+    html += "<tr><th scope=\"row\">" + usd.format(c) + "</th>";
+    gridRates.forEach((r) => {
+      const cell = grid.find((g) => g.offer_cost === c && g.offer_success_rate === r);
+      const t = hi > lo ? (cell.lift_pct - lo) / (hi - lo) : 0.5;
+      const alpha = (0.08 + t * 0.42).toFixed(3);
+      html +=
+        "<td><button type=\"button\" class=\"heat-cell\" data-cost=\"" + c + "\" data-rate=\"" + r + "\"" +
+        " style=\"background: rgba(" + ACCENT_RGB + ", " + alpha + ")\"" +
+        " aria-label=\"Load scenario: cost " + usd.format(c) + ", " + pct.format(r) + " success, lift " +
+        signedPct1(cell.lift_pct) + "\">" +
+        "<span class=\"pct\">" + signedPct1(cell.lift_pct) + "</span>" +
+        "<span class=\"abs\">" + (cell.lift_abs >= 0 ? "+" : "-") + usdCompact.format(Math.abs(cell.lift_abs)) + "</span>" +
+        "</button></td>";
+    });
+    html += "</tr>";
+  });
+  body.innerHTML = html;
+
+  body.addEventListener("click", (e) => {
+    const btn = e.target.closest(".heat-cell");
+    if (!btn) return;
+    setControls(Number(btn.dataset.cost), Number(btn.dataset.rate), metrics.decision.grid_budget);
+  });
 }
 
 // Build the row HTML for selected[start..end).
@@ -139,34 +232,94 @@ function rowsHtml(start, end) {
     const idx = selected[r];
     const c = customers[idx];
     const evVal = ev[idx];
+    const pc = c.p_churn * 100;
+    let chips = "";
+    for (const [label, tone] of signals[idx]) {
+      chips += "<span class=\"sig" + (tone ? " sig-" + tone : "") + "\">" + label + "</span>";
+    }
     html +=
       "<tr>" +
-      "<td>" + (r + 1) + "</td>" +
-      "<td>" + c.id + "</td>" +
-      "<td>" + (c.p_churn * 100).toFixed(1) + "%</td>" +
-      "<td>" + usd.format(c.value_saved) + "</td>" +
-      "<td class=\"" + (evVal >= 0 ? "pos" : "neg") + "\">" + signedUsd(evVal) + "</td>" +
-      "<td class=\"why\">" + why[idx] + "</td>" +
+      "<td class=\"rank num\">" + (r + 1) + "</td>" +
+      "<td class=\"cid\">" + c.id + "</td>" +
+      "<td class=\"prob-td\"><div class=\"prob\"><span class=\"prob-bar" + (pc >= 70 ? " is-high" : "") + "\"><span style=\"width:" +
+        pc.toFixed(1) + "%\"></span></span><span class=\"prob-val\">" + pc.toFixed(1) + "%</span></div></td>" +
+      "<td class=\"num val\" data-label=\"Value \">" + usd.format(c.value_saved) + "</td>" +
+      "<td class=\"num ev " + (evVal >= 0 ? "pos" : "neg") + "\">" + signedUsd(evVal) + "</td>" +
+      "<td class=\"sig-td\"><div class=\"signals\">" + chips + "</div></td>" +
       "</tr>";
   }
   return html;
 }
 
-// reset=true rebuilds from the top 100; reset=false appends the next page.
+// reset=true rebuilds from the top; reset=false appends the next page.
 function renderTable(reset) {
-  const body = document.getElementById("save-body");
+  const body = $("save-body");
   if (reset) {
     shown = Math.min(PAGE, selected.length);
-    body.innerHTML = rowsHtml(0, shown);
+    body.innerHTML = selected.length
+      ? rowsHtml(0, shown)
+      : "<tr class=\"empty-row\"><td colspan=\"6\">No customer clears positive expected value at these assumptions. Try a cheaper offer or a higher success rate.</td></tr>";
   } else {
     const next = Math.min(shown + PAGE, selected.length);
     body.insertAdjacentHTML("beforeend", rowsHtml(shown, next));
     shown = next;
   }
-  document.getElementById("list-caption").textContent =
-    "Showing " + shown.toLocaleString("en-US") + " of " +
-    selected.length.toLocaleString("en-US") + " selected.";
-  document.getElementById("show-more").hidden = shown >= selected.length;
+  $("list-caption").textContent =
+    "Showing " + int.format(shown) + " of " + int.format(selected.length) + " selected";
+  $("window-path").textContent =
+    "save_list.csv · " + int.format(selected.length) + " rows · ranked by expected value";
+  $("show-more").hidden = shown >= selected.length;
+  $("export-csv").disabled = selected.length === 0;
+}
+
+function exportCsv() {
+  const head = ["rank", "customer_id", "p_churn", "value_saved", "expected_value",
+    "geography", "num_products", "balance", "is_active", "signals"];
+  const lines = [head.join(",")];
+  selected.forEach((idx, r) => {
+    const c = customers[idx];
+    lines.push([
+      r + 1, c.id, c.p_churn, c.value_saved, ev[idx].toFixed(2),
+      c.geography, c.num_products, c.balance, c.is_active,
+      "\"" + signals[idx].map((s) => s[0]).join("; ") + "\"",
+    ].join(","));
+  });
+  const { cost, rate, budget } = readControls();
+  const blob = new Blob([lines.join("\n")], { type: "text/csv" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "save_list_cost" + cost + "_rate" + Math.round(rate * 100) + "_budget" + budget + ".csv";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+function renderMetrics() {
+  const ch = metrics.challenger, base = metrics.baseline;
+  $("m-prauc").textContent = ch.pr_auc.toFixed(3);
+  $("m-prauc-sub").innerHTML =
+    "<span class=\"up\">" + (ch.pr_auc / ch.pr_auc_baseline).toFixed(1) + "x</span> no-skill · LR " + base.pr_auc.toFixed(3);
+  $("m-roc").textContent = ch.roc_auc.toFixed(3);
+  $("m-roc-sub").textContent = "Logistic regression " + base.roc_auc.toFixed(3);
+  $("m-brier").textContent = ch.brier_score.toFixed(3);
+  $("m-brier-sub").textContent = "Lower is better · LR " + base.brier_score.toFixed(3);
+  $("m-rate").textContent = (metrics.churn_rate * 100).toFixed(1) + "%";
+  $("pr-caption").textContent =
+    "The dashed line is the " + metrics.churn_rate.toFixed(3) + " no-skill baseline, the churn rate itself.";
+}
+
+// Keep the filled part of each range track in sync with its value.
+function paintSlider(el) {
+  const min = Number(el.min), max = Number(el.max), val = Number(el.value);
+  el.style.setProperty("--fill", ((val - min) / (max - min)) * 100 + "%");
+}
+
+function setControls(cost, rate, budget) {
+  $("cost").value = cost;
+  $("rate").value = rate;
+  $("budget").value = budget;
+  markDirty();
 }
 
 // requestAnimationFrame dirty-flag coalescing. Not a timing debounce, just cheap
@@ -177,77 +330,127 @@ function markDirty() {
   dirty = true;
   requestAnimationFrame(() => {
     dirty = false;
-    const cost = Number(document.getElementById("cost").value);
-    const rate = Number(document.getElementById("rate").value);
-    const budget = Number(document.getElementById("budget").value);
-    document.getElementById("cost-out").textContent = usd.format(cost);
-    document.getElementById("rate-out").textContent = pct.format(rate);
-    document.getElementById("budget-out").textContent = usd.format(budget);
-    recompute(cost, rate, budget);
+    applyControls();
   });
+}
+
+// Read the sliders and render everything. Called directly on boot so the first
+// paint does not wait on rAF, which browsers pause in background tabs.
+function applyControls() {
+  const { cost, rate, budget } = readControls();
+  ["cost", "rate", "budget"].forEach((id) => paintSlider($(id)));
+  $("cost-out").textContent = usd.format(cost);
+  $("rate-out").textContent = pct.format(rate);
+  $("budget-out").textContent = usd.format(budget);
+  $("f-cost").textContent = usd.format(cost);
+  $("f-rate").textContent = rate.toFixed(2);
+  recompute(cost, rate, budget);
+}
+
+// Highlight the top-nav link for the section in view.
+function initScrollSpy() {
+  // The active section is the last one whose top has crossed 35% of the
+  // viewport, which stays correct for long sections that span the whole screen.
+  const links = [...document.querySelectorAll(".topnav a")];
+  const sections = links.map((a) => $(a.getAttribute("href").slice(1)));
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    const line = window.innerHeight * 0.35;
+    let active = -1;
+    sections.forEach((s, i) => { if (s && s.getBoundingClientRect().top <= line) active = i; });
+    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) {
+      active = sections.length - 1;
+    }
+    links.forEach((a, i) => a.classList.toggle("is-active", i === active));
+  };
+  window.addEventListener("scroll", () => {
+    if (!ticking) { ticking = true; requestAnimationFrame(update); }
+  }, { passive: true });
+  update();
 }
 
 // ---- Charts, built once ----
 
-const SERIES = "#177A53";
-const HAIRLINE = "#E4DFD5";
-const REF_GRAY = "#A8A297";
-const TICK = "#6E6A61";
+// Colors come from the CSS tokens in style.css, so the palette lives in one place.
+let INK, ACCENT, ACCENT_RGB, SURFACE, GRID, REF, TICK;
+function readTheme() {
+  const css = getComputedStyle(document.documentElement);
+  const tok = (name) => css.getPropertyValue(name).trim();
+  const inkRgb = tok("--ink-rgb");
+  ACCENT_RGB = tok("--accent-rgb");
+  INK = "rgb(" + inkRgb + ")";
+  ACCENT = "rgb(" + ACCENT_RGB + ")";
+  SURFACE = tok("--surface");
+  GRID = "rgba(" + inkRgb + ", 0.08)";
+  REF = "rgba(" + inkRgb + ", 0.38)";
+  TICK = "rgba(" + inkRgb + ", 0.58)";
+}
+
+function axis(title, extra) {
+  return Object.assign({
+    grid: { color: GRID, drawTicks: false },
+    border: { display: false },
+    ticks: { color: TICK, font: { size: 11 }, padding: 8 },
+    title: title ? { display: true, text: title, color: TICK, font: { size: 11 } } : undefined,
+  }, extra || {});
+}
 
 function baseOptions(extra) {
-  const o = {
+  return Object.assign({
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
-    scales: {
-      x: {
-        grid: { color: HAIRLINE, borderDash: [] },
-        ticks: { color: TICK, font: { size: 12 } },
-      },
-      y: {
-        grid: { color: HAIRLINE, borderDash: [] },
-        ticks: { color: TICK, font: { size: 12 } },
+    animation: { duration: 700, easing: "easeOutQuart" },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: INK,
+        titleFont: { family: "IBM Plex Mono", size: 11 },
+        bodyFont: { family: "IBM Plex Mono", size: 12 },
+        padding: 10,
+        cornerRadius: 8,
+        displayColors: false,
       },
     },
-  };
-  return Object.assign(o, extra || {});
+  }, extra || {});
 }
 
 function buildCharts() {
+  Chart.defaults.font.family = "'IBM Plex Mono', ui-monospace, monospace";
+  Chart.defaults.color = TICK;
+
   // Calibration curve.
   const rc = metrics.reliability_curve;
   const calPoints = rc.mean_predicted_value.map((x, i) => ({ x, y: rc.fraction_of_positives[i] }));
-  new Chart(document.getElementById("calibration-chart"), {
+  new Chart($("calibration-chart"), {
     type: "scatter",
     data: {
       datasets: [
         {
           data: calPoints,
           showLine: true,
-          borderColor: SERIES,
-          backgroundColor: SERIES,
-          borderWidth: 2,
-          pointRadius: 4,
-          pointBorderColor: "#FAF7F2",
+          borderColor: ACCENT,
+          backgroundColor: ACCENT,
+          borderWidth: 2.5,
+          pointRadius: 4.5,
+          pointHoverRadius: 6,
+          pointBorderColor: SURFACE,
           pointBorderWidth: 2,
         },
         {
           data: [{ x: 0, y: 0 }, { x: 1, y: 1 }],
           showLine: true,
-          borderColor: REF_GRAY,
-          borderWidth: 1,
+          borderColor: REF,
+          borderWidth: 1.25,
           borderDash: [4, 4],
           pointRadius: 0,
         },
       ],
     },
     options: baseOptions({
-      plugins: { legend: { display: false } },
       scales: {
-        x: { min: 0, max: 1, title: { display: true, text: "Predicted probability", color: TICK },
-             grid: { color: HAIRLINE }, ticks: { color: TICK, font: { size: 12 } } },
-        y: { min: 0, max: 1, title: { display: true, text: "Observed churn rate", color: TICK },
-             grid: { color: HAIRLINE }, ticks: { color: TICK, font: { size: 12 } } },
+        x: axis("Predicted probability", { min: 0, max: 1 }),
+        y: axis("Observed churn rate", { min: 0, max: 1 }),
       },
       interaction: { mode: "nearest", intersect: true },
     }),
@@ -257,23 +460,24 @@ function buildCharts() {
   const pr = metrics.pr_curve;
   const prPoints = pr.recall.map((x, i) => ({ x, y: pr.precision[i] }));
   const noSkill = metrics.churn_rate;
-  new Chart(document.getElementById("pr-chart"), {
+  new Chart($("pr-chart"), {
     type: "scatter",
     data: {
       datasets: [
         {
           data: prPoints,
           showLine: true,
-          borderColor: SERIES,
-          backgroundColor: SERIES,
-          borderWidth: 2,
+          borderColor: ACCENT,
+          backgroundColor: "rgba(" + ACCENT_RGB + ", 0.08)",
+          fill: "origin",
+          borderWidth: 2.5,
           pointRadius: 0,
         },
         {
           data: [{ x: 0, y: noSkill }, { x: 1, y: noSkill }],
           showLine: true,
-          borderColor: REF_GRAY,
-          borderWidth: 1,
+          borderColor: REF,
+          borderWidth: 1.25,
           borderDash: [4, 4],
           pointRadius: 0,
         },
@@ -281,34 +485,32 @@ function buildCharts() {
     },
     options: baseOptions({
       scales: {
-        x: { min: 0, max: 1, title: { display: true, text: "Recall", color: TICK },
-             grid: { color: HAIRLINE }, ticks: { color: TICK, font: { size: 12 } } },
-        y: { min: 0, max: 1, title: { display: true, text: "Precision", color: TICK },
-             grid: { color: HAIRLINE }, ticks: { color: TICK, font: { size: 12 } } },
+        x: axis("Recall", { min: 0, max: 1 }),
+        y: axis("Precision", { min: 0, max: 1 }),
       },
     }),
   });
 
-  // SHAP horizontal bar, top 10.
+  // SHAP horizontal bar, top 10. The two dominant drivers carry the accent.
   fetch("data/shap.json").then((r) => r.json()).then((shap) => {
     const top = shap.feature_importance.slice(0, 10);
-    new Chart(document.getElementById("shap-chart"), {
+    new Chart($("shap-chart"), {
       type: "bar",
       data: {
         labels: top.map((d) => d.feature),
         datasets: [{
           data: top.map((d) => d.mean_abs_shap),
-          backgroundColor: SERIES,
-          maxBarThickness: 20,
-          borderRadius: 4,
+          backgroundColor: top.map((_, i) => (i < 2 ? ACCENT : INK)),
+          maxBarThickness: 18,
+          borderRadius: 999,
+          borderSkipped: false,
         }],
       },
       options: baseOptions({
         indexAxis: "y",
         scales: {
-          x: { title: { display: true, text: "Mean |SHAP Value|", color: TICK },
-               grid: { color: HAIRLINE }, ticks: { color: TICK, font: { size: 12 } } },
-          y: { grid: { color: HAIRLINE }, ticks: { color: TICK, font: { size: 12 } } },
+          x: axis("Mean |SHAP value|"),
+          y: axis(null, { grid: { display: false }, ticks: { color: INK, font: { size: 12 }, padding: 8 } }),
         },
       }),
     });
@@ -325,37 +527,43 @@ Promise.all([
   customers = scored.customers;
   N = customers.length;
 
+  grid = metrics.decision.sensitivity_grid;
+  gridCosts = metrics.decision.grid_offer_costs;
+  gridRates = metrics.decision.grid_success_rates;
+
   p = new Float64Array(N);
   v = new Float64Array(N);
   ev = new Float64Array(N);
   order = new Int32Array(N);
-  why = new Array(N);
+  signals = new Array(N);
   for (let i = 0; i < N; i++) {
     p[i] = customers[i].p_churn;
     v[i] = customers[i].value_saved;
     order[i] = i;
-    why[i] = buildWhy(customers[i]);
+    signals[i] = buildSignals(customers[i]);
   }
 
   // Wire controls.
   ["cost", "rate", "budget"].forEach((id) => {
-    document.getElementById(id).addEventListener("input", markDirty);
+    $(id).addEventListener("input", markDirty);
   });
-  document.getElementById("show-more").addEventListener("click", () => renderTable(false));
+  $("show-more").addEventListener("click", () => renderTable(false));
+  $("export-csv").addEventListener("click", exportCsv);
+  const d = metrics.decision.defaults;
+  $("reset").addEventListener("click", () => setControls(d.offer_cost, d.offer_success_rate, d.budget));
 
-  // Fill the performance panel text from the real metrics.
-  const ch = metrics.challenger, base = metrics.baseline;
-  document.getElementById("perf-line").textContent =
-    "PR-AUC " + ch.pr_auc.toFixed(3) + " against a " + ch.pr_auc_baseline.toFixed(3) +
-    " no-skill baseline. ROC-AUC " + ch.roc_auc.toFixed(3) + ". Brier " + ch.brier_score.toFixed(3) + ".";
-  document.getElementById("perf-baseline").textContent =
-    "Logistic regression baseline: PR-AUC " + base.pr_auc.toFixed(3) + ".";
-
+  readTheme();
+  $("grid-budget").textContent = usd.format(metrics.decision.grid_budget);
+  renderMetrics();
+  buildHeatTable();
   buildCharts();
+  initScrollSpy();
+
+  document.body.classList.remove("is-loading");
+  $("status-text").textContent = "Model live · " + int.format(N) + " scored";
 
   // Initial render at the default assumptions.
-  const cost = Number(document.getElementById("cost").value);
-  const rate = Number(document.getElementById("rate").value);
-  const budget = Number(document.getElementById("budget").value);
-  recompute(cost, rate, budget);
+  applyControls();
+}).catch(() => {
+  $("status-text").textContent = "Failed to load scores";
 });
