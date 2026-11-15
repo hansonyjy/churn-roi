@@ -3,3 +3,6 @@ data/churn.csv
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# macOS Finder metadata
+.DS_Store
