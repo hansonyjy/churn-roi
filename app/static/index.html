@@ -3,115 +3,313 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Churn ROI</title>
+  <title>Churn ROI · Retention Budget Allocator</title>
   <meta name="description" content="A retention budget allocator. The model predicts who will leave, the decision layer decides who is worth saving, given a budget.">
+  <meta name="theme-color" content="#f6f5f0">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2314261f'/%3E%3Cpath d='M9 21l5-6 4 3 5-7' stroke='%235fd3a3' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=8">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js" defer></script>
-  <script src="app.js" defer></script>
+  <script src="app.js?v=8" defer></script>
 </head>
-<body>
-  <main>
+<body class="is-loading">
 
-    <!-- Header -->
-    <header class="section">
-      <h1>Churn ROI</h1>
-      <p class="dek">A retention budget allocator. The model predicts who will leave, the decision layer decides who is worth saving, given a budget.</p>
-      <p class="muted">10,000 retail banking customers, calibrated LightGBM, out of fold scores. Every number on this page is computed, not invented.</p>
-    </header>
-
-    <!-- Controls -->
-    <section class="section" aria-label="Assumptions">
-      <h2>Set The Assumptions</h2>
-      <div class="controls">
-        <div class="control">
-          <label for="cost">Offer cost <output id="cost-out" for="cost">$50</output></label>
-          <input type="range" id="cost" min="10" max="150" step="5" value="50">
-        </div>
-        <div class="control">
-          <label for="rate">Offer success rate <output id="rate-out" for="rate">30%</output></label>
-          <input type="range" id="rate" min="0.05" max="0.60" step="0.01" value="0.30">
-        </div>
-        <div class="control">
-          <label for="budget">Budget <output id="budget-out" for="budget">$25,000</output></label>
-          <input type="range" id="budget" min="5000" max="100000" step="1000" value="25000">
-        </div>
+  <!-- App bar -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="#top" aria-label="Churn ROI, back to top">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32"><path d="M9 21l5-6 4 3 5-7" /></svg>
+        </span>
+        <span class="brand-name">Churn ROI</span>
+        <span class="brand-crumb mono">/ Retention planner</span>
+      </a>
+      <nav class="topnav mono" aria-label="Sections">
+        <a href="#overview">Overview</a>
+        <a href="#backtest">Backtest</a>
+        <a href="#model">Model</a>
+        <a href="#save-list">Save list</a>
+        <a href="#method">Method</a>
+      </nav>
+      <div class="topbar-actions">
+        <span class="status-pill mono" id="status-pill">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span id="status-text">Loading scores</span>
+        </span>
+        <a class="btn btn-ghost" href="https://github.com/hansonyjy/churn-roi" id="repo-link">
+          <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          <span>Source</span>
+        </a>
       </div>
+    </div>
+  </header>
+
+  <div class="shell" id="top">
+
+    <!-- Hero -->
+    <section class="hero" aria-labelledby="hero-title">
+      <p class="eyebrow mono"><span class="eyebrow-num">01</span> · Retention budget allocator</p>
+      <h1 id="hero-title">Save the Customers <span class="hl">Worth Saving.</span></h1>
+      <p class="dek">The model predicts who will leave. The decision layer decides who is worth saving, given a budget. Move the assumptions and all 10,000 customers are re-ranked in your browser.</p>
+      <ul class="chips mono" aria-label="Dataset facts">
+        <li class="chip">10,000 retail banking customers</li>
+        <li class="chip">Calibrated LightGBM</li>
+        <li class="chip">Out-of-fold scores</li>
+        <li class="chip">Every number computed</li>
+      </ul>
     </section>
 
-    <!-- Headline block -->
-    <section class="section" aria-label="Projected return">
-      <div class="headline-grid">
-        <div class="stat">
-          <p class="stat-label">Projected Expected Net Return</p>
-          <p class="figure" id="ev-figure">$0</p>
-          <p class="caption">Expected value at current assumptions, not a realized backtest.</p>
+    <div class="workspace">
+
+      <!-- Assumptions panel -->
+      <aside class="controls-col" aria-label="Assumptions">
+        <div class="panel controls">
+          <div class="panel-head">
+            <div>
+              <p class="panel-kicker mono">Scenario</p>
+              <h2 class="panel-title">Assumptions</h2>
+            </div>
+            <button type="button" class="btn btn-ghost btn-sm" id="reset">Reset</button>
+          </div>
+
+          <div class="control">
+            <div class="control-row">
+              <label for="cost">Offer cost</label>
+              <output id="cost-out" for="cost" class="mono">$50</output>
+            </div>
+            <input type="range" id="cost" min="10" max="150" step="5" value="50">
+            <div class="control-scale mono" aria-hidden="true"><span>$10</span><span>$150</span></div>
+          </div>
+
+          <div class="control">
+            <div class="control-row">
+              <label for="rate">Offer success rate</label>
+              <output id="rate-out" for="rate" class="mono">30%</output>
+            </div>
+            <input type="range" id="rate" min="0.05" max="0.60" step="0.01" value="0.30">
+            <div class="control-scale mono" aria-hidden="true"><span>5%</span><span>60%</span></div>
+          </div>
+
+          <div class="control">
+            <div class="control-row">
+              <label for="budget">Budget</label>
+              <output id="budget-out" for="budget" class="mono">$25,000</output>
+            </div>
+            <input type="range" id="budget" min="5000" max="100000" step="1000" value="25000">
+            <div class="control-scale mono" aria-hidden="true"><span>$5k</span><span>$100k</span></div>
+          </div>
+
+          <div class="formula">
+            <p class="formula-label mono">Per-customer expected value</p>
+            <p class="formula-eq mono">EV = P(churn) × value × <b id="f-rate">0.30</b> − <b id="f-cost">$50</b></p>
+            <ul class="formula-rules">
+              <li>Ranked by EV, not by risk.</li>
+              <li>Stops at the budget cap or when EV hits zero, whichever comes first.</li>
+            </ul>
+          </div>
         </div>
-        <div class="stat">
-          <p class="stat-label">Offers</p>
-          <p class="figure" id="offers-figure">0 sent of 0 allowed</p>
-          <p class="caption" id="offers-callout"></p>
+      </aside>
+
+      <!-- Main column -->
+      <main class="main-col">
+
+        <!-- KPIs -->
+        <section id="overview" class="kpis" aria-label="Projected return">
+          <article class="kpi kpi-hero">
+            <p class="kpi-label mono">Projected net return</p>
+            <p class="kpi-value" id="ev-figure"><span class="skel"></span></p>
+            <p class="kpi-foot">Expected value at current assumptions, not a realized backtest.</p>
+          </article>
+          <article class="kpi">
+            <p class="kpi-label mono">Offers sent</p>
+            <p class="kpi-value"><span id="offers-sent">0</span><span class="kpi-of" id="offers-cap"> / 0</span></p>
+            <div class="meter" aria-hidden="true"><span id="offers-meter"></span></div>
+            <p class="kpi-foot" id="offers-foot">Allowed by the budget.</p>
+          </article>
+          <article class="kpi">
+            <p class="kpi-label mono">Budget deployed</p>
+            <p class="kpi-value" id="spend-figure">$0</p>
+            <div class="meter" aria-hidden="true"><span id="spend-meter"></span></div>
+            <p class="kpi-foot" id="spend-foot">0% of budget.</p>
+          </article>
+          <article class="kpi">
+            <p class="kpi-label mono">Return per dollar</p>
+            <p class="kpi-value" id="roi-figure">0.0x</p>
+            <p class="kpi-foot" id="roi-foot">Expected net value per offer dollar.</p>
+          </article>
+        </section>
+
+        <div class="alert" id="offers-callout" role="status" aria-live="polite" hidden>
+          <span class="alert-icon" aria-hidden="true">!</span>
+          <div>
+            <p class="alert-title">The budget is a cap, not a quota.</p>
+            <p class="alert-body" id="offers-callout-body"></p>
+          </div>
         </div>
-      </div>
-      <p class="lift-line" id="lift-line"></p>
-    </section>
 
-    <!-- Performance panel -->
-    <section class="section" aria-label="Model performance">
-      <h2>Is the Model Any Good?</h2>
-      <p class="stat-line" id="perf-line">PR-AUC 0.699 against a 0.204 no-skill baseline. ROC-AUC 0.861. Brier 0.103.</p>
-      <p class="muted" id="perf-baseline">Logistic regression baseline: PR-AUC 0.464.</p>
+        <!-- Backtest -->
+        <section id="backtest" class="section" aria-labelledby="backtest-title">
+          <header class="section-head">
+            <p class="eyebrow mono"><span class="eyebrow-num">02</span> · Backtest</p>
+            <h2 id="backtest-title">Does EV Targeting Beat Risk Targeting?</h2>
+            <p class="section-dek">Realized net value on out-of-fold predictions against true labels, at a fixed <span id="grid-budget">$25,000</span> budget. The grid tracks the nearest precomputed scenario to your sliders.</p>
+          </header>
 
-      <div class="chart-grid">
-        <figure class="chart-block">
-          <figcaption class="caption">Calibration. Dots on the dashed diagonal mean predicted probabilities match observed churn rates.</figcaption>
-          <div class="chart-box chart-260"><canvas id="calibration-chart"></canvas></div>
-        </figure>
-        <figure class="chart-block">
-          <figcaption class="caption">Precision recall. The dashed line is the 0.204 no-skill baseline.</figcaption>
-          <div class="chart-box chart-260"><canvas id="pr-chart"></canvas></div>
-        </figure>
-      </div>
+          <div class="card backtest">
+            <div class="backtest-bars">
+              <div class="card-head">
+                <h3 class="card-title">Net value by strategy</h3>
+                <span class="tag mono" id="scenario-tag">Cost $50 · 30% success</span>
+              </div>
+              <div class="bars" id="strategy-bars">
+                <div class="bar-row" data-key="ev">
+                  <div class="bar-meta"><span class="bar-name">EV targeting</span><span class="bar-val mono" id="bar-ev-val">$0</span></div>
+                  <div class="bar-track"><span class="bar-fill is-accent" id="bar-ev"></span></div>
+                </div>
+                <div class="bar-row" data-key="risk">
+                  <div class="bar-meta"><span class="bar-name">Risk targeting</span><span class="bar-val mono" id="bar-risk-val">$0</span></div>
+                  <div class="bar-track"><span class="bar-fill is-ink" id="bar-risk"></span></div>
+                </div>
+                <div class="bar-row" data-key="random">
+                  <div class="bar-meta"><span class="bar-name">Random <span class="muted">(mean of 100 seeds)</span></span><span class="bar-val mono" id="bar-random-val">$0</span></div>
+                  <div class="bar-track"><span class="bar-fill is-muted" id="bar-random"></span></div>
+                </div>
+              </div>
+              <p class="lift-line" id="lift-line"></p>
+            </div>
 
-      <figure class="chart-block">
-        <figcaption class="caption">Feature importance, mean absolute SHAP value on a plain LightGBM fit.</figcaption>
-        <div class="chart-box chart-320"><canvas id="shap-chart"></canvas></div>
-      </figure>
+            <div class="backtest-grid">
+              <div class="card-head">
+                <h3 class="card-title">Lift over risk targeting</h3>
+                <span class="hint mono">Click a cell to load it</span>
+              </div>
+              <div class="grid-wrap">
+                <table class="heat" id="heat-table">
+                  <thead><tr><th scope="col" class="mono"><span class="lg-only">Cost \ Success</span><span class="sm-only">Cost</span></th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <p class="grid-note">As offers get more expensive, the negative-EV stop binds sooner and the advantage widens.</p>
+            </div>
+          </div>
+        </section>
 
-      <p class="body-note">A few real quirks show up. Age is the strongest single driver. NumOfProducts is nonlinear: 2 products is safest at 7.6% churn, 3 products churns at 82.7%, and 4 products at 100%. Germany churns at roughly twice the rate of France and Spain, and about a third of customers hold a zero balance.</p>
-    </section>
+        <!-- Model -->
+        <section id="model" class="section" aria-labelledby="model-title">
+          <header class="section-head">
+            <p class="eyebrow mono"><span class="eyebrow-num">03</span> · Model quality</p>
+            <h2 id="model-title">Is the Model Any Good?</h2>
+            <p class="section-dek">Calibration matters here: you cannot multiply an uncalibrated probability by a dollar value and get a real number.</p>
+          </header>
 
-    <!-- Save list -->
-    <section class="section" aria-label="Save list">
-      <h2>The Save List</h2>
-      <p class="caption" id="list-caption">Showing 0 of 0 selected.</p>
-      <div class="table-scroll">
-        <table id="save-table">
-          <thead>
-            <tr>
-              <th>Rank</th>
-              <th>Customer</th>
-              <th>P(Churn)</th>
-              <th>Value</th>
-              <th>Expected Value</th>
-              <th>Why</th>
-            </tr>
-          </thead>
-          <tbody id="save-body"></tbody>
-        </table>
-      </div>
-      <button type="button" id="show-more" class="show-more" hidden>Show 10 More</button>
-    </section>
+          <div class="metric-strip" id="metric-strip">
+            <div class="metric"><p class="metric-label mono">PR-AUC</p><p class="metric-value" id="m-prauc">–</p><p class="metric-sub" id="m-prauc-sub"></p></div>
+            <div class="metric"><p class="metric-label mono">ROC-AUC</p><p class="metric-value" id="m-roc">–</p><p class="metric-sub" id="m-roc-sub"></p></div>
+            <div class="metric"><p class="metric-label mono">Brier score</p><p class="metric-value" id="m-brier">–</p><p class="metric-sub" id="m-brier-sub"></p></div>
+            <div class="metric"><p class="metric-label mono">Churn rate</p><p class="metric-value" id="m-rate">–</p><p class="metric-sub">No-skill PR-AUC baseline</p></div>
+          </div>
 
-    <!-- Footer -->
-    <footer class="section footer">
-      <p>Value proxy: <code>value_saved = 120 * num_products + 0.02 * balance</code>. The $120 per product is an annual relationship value order of magnitude for retail banking (fees, interchange, cross-sell). The 2% is a net interest margin on deposits. A pure balance proxy would degenerate on the roughly one third of customers who hold a zero balance, valuing them at zero, so the per-product term keeps multi-product customers visible to the engine.</p>
-      <p>This targets customers by churn probability, not persuadability. True incrementality would need uplift modeling and treatment data this dataset does not have.</p>
-      <p><a href="https://github.com/hansonyjy/churn-roi" id="repo-link">Source on GitHub</a></p>
-    </footer>
+          <div class="chart-grid">
+            <figure class="card chart-card">
+              <div class="card-head">
+                <h3 class="card-title">Calibration</h3>
+                <span class="legend mono"><i class="sw sw-accent"></i>Model <i class="sw sw-dash"></i>Perfect</span>
+              </div>
+              <div class="chart-box chart-260"><canvas id="calibration-chart" aria-label="Calibration curve"></canvas></div>
+              <figcaption class="card-foot">Dots on the dashed diagonal mean predicted probabilities match observed churn rates.</figcaption>
+            </figure>
+            <figure class="card chart-card">
+              <div class="card-head">
+                <h3 class="card-title">Precision vs. recall</h3>
+                <span class="legend mono"><i class="sw sw-accent"></i>Model <i class="sw sw-dash"></i>No skill</span>
+              </div>
+              <div class="chart-box chart-260"><canvas id="pr-chart" aria-label="Precision recall curve"></canvas></div>
+              <figcaption class="card-foot" id="pr-caption">The dashed line is the no-skill baseline.</figcaption>
+            </figure>
+          </div>
 
-  </main>
+          <figure class="card chart-card">
+            <div class="card-head">
+              <h3 class="card-title">What drives churn</h3>
+              <span class="legend mono">Mean |SHAP value|, top 10</span>
+            </div>
+            <div class="chart-box chart-320"><canvas id="shap-chart" aria-label="Feature importance"></canvas></div>
+            <figcaption class="card-foot">Age is the strongest single driver. NumOfProducts is nonlinear: 2 products is safest at 7.6% churn, 3 products churns at 82.7%, and 4 products at 100%. Germany churns at roughly twice the rate of France and Spain, and about a third of customers hold a zero balance.</figcaption>
+          </figure>
+        </section>
+
+        <!-- Save list -->
+        <section id="save-list" class="section" aria-labelledby="list-title">
+          <header class="section-head">
+            <p class="eyebrow mono"><span class="eyebrow-num">04</span> · Output</p>
+            <h2 id="list-title">The Save List</h2>
+            <p class="section-dek">Who gets an offer, in order. A 95% risk customer can rank below a 60% one if they are worth less than the offer costs.</p>
+          </header>
+
+          <div class="window">
+            <div class="window-bar">
+              <span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+              <span class="window-path mono" id="window-path">save_list.csv</span>
+              <button type="button" class="btn btn-ghost btn-sm" id="export-csv">
+                <svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1v9m0 0L4.5 6.5M8 10l3.5-3.5M2 11v2.5h12V11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>Export CSV</span>
+              </button>
+            </div>
+            <div class="table-scroll">
+              <table id="save-table" class="data-table">
+                <thead>
+                  <tr>
+                    <th scope="col" class="num">#</th>
+                    <th scope="col">Customer</th>
+                    <th scope="col">P(Churn)</th>
+                    <th scope="col" class="num">Value</th>
+                    <th scope="col" class="num">Expected Value</th>
+                    <th scope="col">Signals</th>
+                  </tr>
+                </thead>
+                <tbody id="save-body"></tbody>
+              </table>
+            </div>
+            <div class="window-foot">
+              <p class="mono muted" id="list-caption">Showing 0 of 0 selected</p>
+              <button type="button" id="show-more" class="btn btn-primary btn-sm" hidden>Show 10 more</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Method -->
+        <section id="method" class="section" aria-labelledby="method-title">
+          <header class="section-head">
+            <p class="eyebrow mono"><span class="eyebrow-num">05</span> · Method</p>
+            <h2 id="method-title">Assumptions, Stated Plainly</h2>
+          </header>
+          <div class="method-grid">
+            <div class="card note">
+              <h3 class="card-title">Value proxy</h3>
+              <p><code>value_saved = 120 × num_products + 0.02 × balance</code></p>
+              <p>The $120 per product is an annual relationship value order of magnitude for retail banking (fees, interchange, cross-sell). The 2% is a net interest margin on deposits. A pure balance proxy would value the roughly one third of zero-balance customers at zero, so the per-product term keeps multi-product customers visible to the engine.</p>
+            </div>
+            <div class="card note">
+              <h3 class="card-title">Incrementality</h3>
+              <p>This targets customers by churn probability, not persuadability. True incrementality would need uplift modeling and treatment data this dataset does not have.</p>
+              <p>The backtest assumes an offer saves a would-be churner with probability equal to the success rate and does nothing for a non-churner. That is a stated simplification, not a causal claim.</p>
+            </div>
+            <div class="card note">
+              <h3 class="card-title">Architecture</h3>
+              <p>Training is offline and serving is static. Five-fold out-of-fold scoring with an isotonically calibrated LightGBM writes JSON artifacts, and FastAPI only hands out files. The sliders re-rank every customer client-side, so there is no inference on request.</p>
+            </div>
+          </div>
+        </section>
+
+        <footer class="footer mono">
+          <span>Churn ROI · Data: Churn_Modelling.csv, 10,000 customers</span>
+          <a href="https://github.com/hansonyjy/churn-roi">Source on GitHub ↗</a>
+        </footer>
+      </main>
+    </div>
+  </div>
+
 </body>
 </html>
