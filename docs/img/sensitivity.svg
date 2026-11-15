@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 560" width="1200" height="560" role="img" aria-labelledby="t d">
+<title id="t">EV targeting beat risk targeting in all 9 scenarios</title><desc id="d">Lift of EV targeting over risk targeting at a $25,000 budget. cost $25 at 20% success: +20.9% (+$65.3K); cost $25 at 30% success: +20.4% (+$98.0K); cost $25 at 40% success: +20.1% (+$131K); cost $50 at 20% success: +27.3% (+$47.7K); cost $50 at 30% success: +26.0% (+$71.5K); cost $50 at 40% success: +25.4% (+$95.3K); cost $100 at 20% success: +40.7% (+$35.1K); cost $100 at 30% success: +37.1% (+$52.6K); cost $100 at 40% success: +35.5% (+$70.1K). At the default scenario EV returned $346,314, risk $274,825, random $35,809.</desc>
+<rect width="1200" height="560" rx="18" fill="#f6f5f0"/>
+<text x="48" y="64" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15" fill="#0b6e4b">Backtest · out-of-fold predictions against true labels · $25,000 budget</text>
+<text x="48" y="106" font-family="Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="34" font-weight="800" letter-spacing="-1" fill="#14261f">EV targeting beat risk targeting in all 9 scenarios</text>
+<text x="46" y="154" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#6b7771">Offer cost</text>
+<text x="412.0" y="130" text-anchor="middle" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#6b7771">Offer success rate</text>
+<text x="234.0" y="160" text-anchor="middle" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15" fill="#3f4f48">20%</text>
+<text x="412.0" y="160" text-anchor="middle" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15" fill="#3f4f48">30%</text>
+<text x="590.0" y="160" text-anchor="middle" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="15" fill="#3f4f48">40%</text>
+<text x="46" y="231.0" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16" fill="#3f4f48">$25</text>
+<rect x="150" y="176" width="168" height="98" rx="12" fill="#0f8f62" fill-opacity="0.119"/>
+<text x="234.0" y="226" text-anchor="middle" font-family="Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="27" font-weight="800" letter-spacing="-0.5" fill="#14261f">+20.9%</text>
+<text x="234.0" y="252" text-anchor="middle" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" fill="#3f4f48">+$65.3K</text>
+<rect x="328" y="176" width="168" height="98" rx="12" fill="#0f8f62" fill-opacity="0.106"/>
+<text x="412.0" y="226" text-anchor="middle" font-family="Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="27" font-weight="800" letter-spacing="-0.5" fill="#14261f">+20.4%</text>
+<text x="412.0" y="252" text-anchor="middle" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" fill="#3f4f48">+$98.0K</text>
+<rect x="506" y="176" width="168" height="98" rx="12" fill="#0f8f62" fill-opacity="0.100"/>
+<text x="590.0" y="226" text-anchor="middle" font-family="Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="27" font-weight="800" letter-spacing="-0.5" fill="#14261f">+20.1%</text>
+<text x="590.0" y="252" text-anchor="middle" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" fill="#3f4f48">+$131K</text>
+<text x="46" y="339.0" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16" fill="#3f4f48">$50</text>
+<rect x="150" y="284" width="168" height="98" rx="12" fill="#0f8f62" fill-opacity="0.267"/>
+<text x="234.0" y="334" text-anchor="middle" font-family="Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="27" font-weight="800" letter-spacing="-0.5" fill="#14261f">+27.3%</text>
+<text x="234.0" y="360" text-anchor="middle" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" fill="#3f4f48">+$47.7K</text>
+<rect x="328" y="284" width="168" height="98" rx="12" fill="#0f8f62" fill-opacity="0.238" stroke="#14261f" stroke-width="2.5"/>
+<text x="412.0" y="334" text-anchor="middle" font-family="Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="27" font-weight="800" letter-spacing="-0.5" fill="#14261f">+26.0%</text>
+<text x="412.0" y="360" text-anchor="middle" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" fill="#3f4f48">+$71.5K</text>
+<rect x="506" y="284" width="168" height="98" rx="12" fill="#0f8f62" fill-opacity="0.224"/>
+<text x="590.0" y="334" text-anchor="middle" font-family="Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="27" font-weight="800" letter-spacing="-0.5" fill="#14261f">+25.4%</text>
+<text x="590.0" y="360" text-anchor="middle" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" fill="#3f4f48">+$95.3K</text>
+<text x="46" y="447.0" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16" fill="#3f4f48">$100</text>
+<rect x="150" y="392" width="168" height="98" rx="12" fill="#0f8f62" fill-opacity="0.580"/>
+<text x="234.0" y="442" text-anchor="middle" font-family="Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="27" font-weight="800" letter-spacing="-0.5" fill="#14261f">+40.7%</text>
+<text x="234.0" y="468" text-anchor="middle" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" fill="#3f4f48">+$35.1K</text>
+<rect x="328" y="392" width="168" height="98" rx="12" fill="#0f8f62" fill-opacity="0.496"/>
+<text x="412.0" y="442" text-anchor="middle" font-family="Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="27" font-weight="800" letter-spacing="-0.5" fill="#14261f">+37.1%</text>
+<text x="412.0" y="468" text-anchor="middle" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" fill="#3f4f48">+$52.6K</text>
+<rect x="506" y="392" width="168" height="98" rx="12" fill="#0f8f62" fill-opacity="0.460"/>
+<text x="590.0" y="442" text-anchor="middle" font-family="Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="27" font-weight="800" letter-spacing="-0.5" fill="#14261f">+35.5%</text>
+<text x="590.0" y="468" text-anchor="middle" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" fill="#3f4f48">+$70.1K</text>
+<text x="46" y="520" font-family="Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="15" fill="#6b7771">Pricier offers make the negative-EV stop bind sooner, so the advantage widens. Outlined: the default scenario.</text>
+<rect x="732" y="136" width="448" height="330" rx="14" fill="#fdfdfb" stroke="#dcdcd3"/>
+<text x="760" y="168" font-family="Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#14261f">Net value at the default scenario</text>
+<text x="760" y="192" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#6b7771">$50 offer · 30% success · 500 offers</text>
+<text x="760" y="234" font-family="Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="16" fill="#14261f">EV targeting</text>
+<text x="1152" y="234" text-anchor="end" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16" font-weight="600" fill="#14261f">$346,314</text>
+<rect x="760" y="246" width="392" height="14" rx="7" fill="#eeede6"/>
+<rect x="760" y="246" width="392.0" height="14" rx="7" fill="#0f8f62"/>
+<text x="760" y="300" font-family="Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="16" fill="#14261f">Risk targeting</text>
+<text x="1152" y="300" text-anchor="end" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16" font-weight="600" fill="#14261f">$274,825</text>
+<rect x="760" y="312" width="392" height="14" rx="7" fill="#eeede6"/>
+<rect x="760" y="312" width="311.1" height="14" rx="7" fill="#14261f"/>
+<text x="760" y="366" font-family="Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="16" fill="#14261f">Random, mean of 100 seeds</text>
+<text x="1152" y="366" text-anchor="end" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16" font-weight="600" fill="#14261f">$35,809</text>
+<rect x="760" y="378" width="392" height="14" rx="7" fill="#eeede6"/>
+<rect x="760" y="378" width="40.5" height="14" rx="7" fill="#a3aaa6"/>
+<text x="760" y="446" font-family="Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="16" fill="#3f4f48">EV over risk: <tspan font-weight="700" fill="#0b6e4b">+$71,489 (+26.0%)</tspan></text>
+</svg>

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 470" width="1200" height="470" role="img" aria-labelledby="at ad">
+<title id="at">Architecture: offline training, static serving, in-browser decisions</title>
+<desc id="ad">Offline: churn.csv goes into python -m src.build, which runs 5-fold out-of-fold calibrated LightGBM scoring, the backtest and the sensitivity grid, and writes three JSON artifacts committed to git. Online: FastAPI on Render only serves static files. In the browser, the sliders recompute EV for all 10,000 customers, rank by EV, and stop at the budget cap or when EV reaches zero, producing the save list.</desc>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#3f4f48"/></marker></defs>
+<rect width="1200" height="470" rx="18" fill="#f6f5f0"/>
+<rect x="32" y="56" width="540" height="382" rx="14" fill="none" stroke="#dcdcd3" stroke-dasharray="6 6"/>
+<text x="56" y="44" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" fill="#6b7771">Offline, once, on a laptop</text>
+<rect x="604" y="56" width="564" height="382" rx="14" fill="none" stroke="#0f8f62" stroke-opacity="0.45" stroke-dasharray="6 6"/>
+<text x="628" y="44" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" fill="#0b6e4b">Online, every visit</text>
+<rect x="56" y="84" width="220" height="96" rx="12" fill="#fdfdfb" stroke="#dcdcd3"/>
+<text x="74" y="116" font-family="Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#14261f">churn.csv</text>
+<text x="74" y="142" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#3f4f48">10,000 customers</text>
+<text x="74" y="164" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#3f4f48">gitignored, never deployed</text>
+<rect x="56" y="222" width="492" height="142" rx="12" fill="#14261f" stroke="#14261f"/>
+<text x="74" y="254" font-family="Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#f6f5f0">python -m src.build</text>
+<text x="74" y="280" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#b7c4be">5-fold out-of-fold scoring</text>
+<text x="74" y="302" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#b7c4be">isotonic-calibrated LightGBM</text>
+<text x="74" y="324" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#b7c4be">backtest: EV vs risk vs random</text>
+<text x="74" y="346" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#b7c4be">3x3 sensitivity grid, SHAP</text>
+<rect x="316" y="84" width="232" height="96" rx="12" fill="#fdfdfb" stroke="#dcdcd3"/>
+<text x="334" y="116" font-family="Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#14261f">3 JSON artifacts</text>
+<text x="334" y="142" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#3f4f48">scored_customers.json</text>
+<text x="334" y="164" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#3f4f48">metrics.json, shap.json</text>
+<text x="56" y="414" font-family="Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" fill="#6b7771">Training never runs on the server. The artifacts are committed to git.</text>
+<rect x="628" y="84" width="250" height="96" rx="12" fill="#fdfdfb" stroke="#dcdcd3"/>
+<text x="646" y="116" font-family="Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#14261f">FastAPI on Render</text>
+<text x="646" y="142" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#3f4f48">static files + gzip</text>
+<text x="646" y="164" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#3f4f48">no inference endpoint</text>
+<rect x="628" y="222" width="516" height="186" rx="12" fill="#e3f1ea" stroke="#0f8f62"/>
+<text x="646" y="254" font-family="Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#0b6e4b">Your browser, on every slider move</text>
+<text x="646" y="280" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#3f4f48">EV = P(churn) × value × success − cost</text>
+<text x="646" y="302" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#3f4f48">for all 10,000 customers</text>
+<text x="646" y="324" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#3f4f48">rank by EV, not by risk</text>
+<text x="646" y="346" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#3f4f48">stop at the budget cap or EV ≤ 0</text>
+<text x="646" y="368" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#3f4f48">→ save list, KPIs, backtest grid</text>
+<rect x="910" y="84" width="234" height="96" rx="12" fill="#fdfdfb" stroke="#dcdcd3"/>
+<text x="928" y="116" font-family="Archivo, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="18" font-weight="700" fill="#14261f">Commit to main</text>
+<text x="928" y="142" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#3f4f48">Render auto-deploys</text>
+<text x="928" y="164" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13" fill="#3f4f48">/api/health for uptime</text>
+<line x1="166" y1="180" x2="166" y2="218" stroke="#3f4f48" stroke-width="2" marker-end="url(#ar)"/>
+<line x1="420" y1="222" x2="420" y2="184" stroke="#3f4f48" stroke-width="2" marker-end="url(#ar)"/>
+<line x1="548" y1="132" x2="628" y2="132" stroke="#3f4f48" stroke-width="2" marker-end="url(#ar)"/>
+<line x1="753" y1="180" x2="753" y2="218" stroke="#3f4f48" stroke-width="2" marker-end="url(#ar)"/>
+<line x1="910" y1="132" x2="878" y2="132" stroke="#3f4f48" stroke-width="2" marker-end="url(#ar)"/>
+</svg>
