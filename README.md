@@ -88,7 +88,7 @@ The tree model wins largely because NumOfProducts is sharply nonlinear: 2 produc
 ## Engineering Notes
 
 - **Instant re-ranking.** Probabilities and values live in typed arrays, each slider move runs one stable sort, and dense input is coalesced to one recompute per frame. The first render runs synchronously, because browsers pause animation frames in background tabs.
-- **One heavy file, compressed.** `scored_customers.json` is 1.3 MB of numeric text. GitHub Pages gzips it on the fly to under 180 KB.
+- **One heavy file, compressed.** `scored_customers.json` is 1.3 MB of numeric text. GitHub Pages gzips it on the fly to 189 KB.
 - **No build step.** A GitHub Actions workflow publishes `app/static/` exactly as committed. The training stack (LightGBM, pandas, SHAP, scikit-learn) never leaves my laptop.
 - **Cache-safe releases.** CSS and JS links carry a version query, so a browser holding the last release's files fetches the new ones as soon as it sees the new page. GitHub Pages caches pages for at most 10 minutes (`max-age=600`), so a release reaches every visitor within that window.
 - **Deploys you can check.** Every push to `main` that touches `app/static/` runs the Pages workflow, and the Actions tab shows which commit is live. I moved here from Render's free tier, which made the first visit after a quiet spell wait about a minute, and where the live site once sat on its first commit for four months because Render's GitHub app had lost access to the repo.
