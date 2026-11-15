@@ -1,7 +1,7 @@
 """Drive headless Chrome over the DevTools protocol to capture README media
 from the running app: the hero GIF of the sliders and the save list screenshot.
 
-Start the app first (uvicorn app.main:app --port 8765), then:
+Serve the app first (python -m http.server 8765 --directory app/static), then:
     python docs/capture.py
 Needs Google Chrome, Pillow, and websocket-client (dev only, not serving deps)."""
 
