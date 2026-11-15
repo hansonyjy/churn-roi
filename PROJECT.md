@@ -10,7 +10,7 @@ This is a portfolio project. Every reported number must be real, computed on rea
 - **Title Case for headings, never all-caps.**
 - **Production web app look** for the frontend: an app shell (sticky top bar, sticky assumptions panel beside the results, KPI cards, card-framed charts and tables), not a one-column document. Ledger palette (money green accent on a bone ground, deep forest ink, amber for alerts), Archivo for display type, IBM Plex Mono for labels and numbers. The accent is reserved for "the answer" (the recommended action and the money it returns). It must stay readable on a phone, because recruiters click portfolio links on phones: the save list becomes cards under 640px and nothing may scroll sideways.
 - **Every color is a token.** The palette lives in the `:root` block at the top of `app/static/style.css`, and the charts and heat grid in `app.js` read those same tokens at boot. Never hardcode a hex or rgba value elsewhere; change the palette by editing that block.
-- **Custom frontend, not Streamlit.** FastAPI backend serving a static HTML/CSS/JS frontend.
+- **Custom frontend, not Streamlit.** A static HTML/CSS/JS frontend on GitHub Pages, with no backend.
 - **Every metric is real.** Compute on the actual CSV. If a number can't be computed yet, leave a clearly labeled TODO, do not invent it.
 - Concise, conversational tone in all writing.
 
@@ -22,7 +22,7 @@ This is a portfolio project. Every reported number must be real, computed on rea
 - Value proxy: base relationship value per product plus a balance margin component (details below).
 - Selection rule: budget is a cap, not a quota. Never select negative-EV customers.
 - Headline result: a sensitivity grid of EV-over-Risk lift, not a single number.
-- Deploy: train locally, commit the JSON artifacts, Render serves static. No training on Render.
+- Deploy: train locally, commit the JSON artifacts, GitHub Pages serves `app/static/`. No training in CI.
 - Charts: Chart.js from a CDN. Nothing heavier.
 
 ## Dataset (Schema Is Known, Confirm On Load)
@@ -43,7 +43,7 @@ If the actual file deviates from this schema, stop and flag it before building o
 Training is offline. Serving is static. This keeps the deployed app fast and cheap and is itself an interview talking point.
 
 1. A build step (`python -m src.build`) trains, scores every customer out-of-fold, runs the backtest and sensitivity grid, and writes JSON artifacts into `app/static/data/`.
-2. The FastAPI app serves the frontend and those artifacts. No inference on request.
+2. GitHub Pages serves the frontend and those artifacts. No server, no inference on request.
 3. The sliders (offer cost, offer success rate, budget) recompute expected value and re-rank the save list entirely client-side in JavaScript from the per-customer calibrated probability and value shipped in the JSON. The demo is instant and the user can say "let me change the assumptions live" in an interview.
 
 ## File Structure
@@ -54,7 +54,7 @@ churn-roi/
 ├── PROJECT.md
 ├── requirements.txt
 ├── .gitignore                    (ignores data/churn.csv, NOT app/static/data/)
-├── render.yaml
+├── .github/workflows/pages.yml   publishes app/static/ to GitHub Pages
 ├── data/
 │   └── churn.csv                 (user-provided, gitignored)
 ├── src/
@@ -64,7 +64,6 @@ churn-roi/
 │   ├── decision.py               value proxy, EV, budget-capped selection, backtest, sensitivity grid
 │   └── build.py                  orchestrates everything, writes artifacts to app/static/data/
 ├── app/
-│   ├── main.py                   FastAPI, serves frontend and artifacts
 │   └── static/
 │       ├── index.html
 │       ├── style.css
@@ -144,7 +143,7 @@ You pay `offer_cost` for every offer sent, and you recover value only from custo
 
 ## Phase 3: Frontend and Deploy
 
-**Frontend (`app/static/`).** Production app shell in the Ledger palette (see Non-Negotiables), readable on mobile. When `style.css` or `app.js` changes, bump the `?v=` query on their links in `index.html`; HTML is served with `Cache-Control: no-cache`, so a fresh page always pulls the matching assets. Sections:
+**Frontend (`app/static/`).** Production app shell in the Ledger palette (see Non-Negotiables), readable on mobile. When `style.css` or `app.js` changes, bump the `?v=` query on their links in `index.html`, so a fresh page always pulls the matching assets. GitHub Pages caches files for up to 10 minutes (`max-age=600`), so a release reaches every visitor within that window. Sections:
 
 - A short header framing the tool as a retention allocation decision, not a churn score.
 - **Three controls:** offer cost, offer success rate, total budget. Sliders or clean numeric inputs with sensible ranges and formatted values.
@@ -154,9 +153,7 @@ You pay `offer_cost` for every offer sent, and you recover value only from custo
 
 Keep the JavaScript readable and dependency-light. Ship only the fields the frontend needs per customer (an anonymized id, P(churn), value components, and the few display features), not the full feature rows.
 
-**Backend (`app/main.py`).** FastAPI serves the static frontend and artifacts. No inference endpoint. Minimal.
-
-**Deploy.** Train locally, commit the three JSON artifacts, and let Render serve them statically. The CSV is gitignored so Render cannot train, and free-tier build minutes should not be spent on it anyway. `render.yaml` with a plain uvicorn start command, matching the Starbucks app pattern. Note in the README that Render free tier spins down when idle, so the first hit after a quiet period takes about a minute, worth knowing before a live interview demo (open the link five minutes early). Auto-deploy on push only works while the Render GitHub App has access to this repo (GitHub Settings, Installed GitHub Apps, Render, repository access). It once silently lacked access and the live site sat on the first commit for four months, so if a push does not deploy, check that first.
+**Deploy.** Train locally, commit the three JSON artifacts, and push to `main`. `.github/workflows/pages.yml` publishes `app/static/` to GitHub Pages (Settings, Pages, Source: GitHub Actions) whenever `app/static/**` or the workflow changes; for anything else, run it by hand from the Actions tab. There is no build step and no backend. The CSV is gitignored, so CI cannot train. Pages gzips the JSON on its own (`scored_customers.json` ships at 189 KB) and has no cold start. The project used to run on Render's free tier, where the first visit after a quiet spell took about a minute and the live site once sat on its first commit for four months because Render's GitHub app had lost repo access. To preview locally: `python -m http.server 8765 --directory app/static`.
 
 **README.** Doubles as the portfolio writeup. Include: one-line pitch, the core insight (EV over risk, budget as cap), an architecture diagram (offline training to static serving to client-side recompute), the sensitivity grid with the honest range, how to run locally, the value and incrementality assumptions stated plainly, and a short "what this demonstrates" section (supervised ML, calibration, out-of-fold rigor, decision economics, honest causal reasoning).
 
@@ -164,7 +161,7 @@ Keep the JavaScript readable and dependency-light. Ship only the fields the fron
 
 - [ ] Phase 1: OOF calibrated scoring for all 10,000 customers, real metrics, SHAP readout
 - [ ] Phase 2: value proxy without the zero-balance degeneracy, EV engine, budget-cap selection with negative-EV stop, three-way backtest, sensitivity grid
-- [ ] Phase 3: custom app-shell frontend with live sliders and the offers-sent-vs-allowed readout, performance panel, Render config
+- [ ] Phase 3: custom app-shell frontend with live sliders and the offers-sent-vs-allowed readout, performance panel, GitHub Pages deploy
 - [ ] README as portfolio writeup with architecture diagram and honest caveats
 - [ ] Tests passing on decision math, budget cap, and negative-EV exclusion
 - [ ] A suggested resume bullet and a short portfolio blurb, both quoting the real grid range
@@ -178,6 +175,6 @@ Keep the JavaScript readable and dependency-light. Ship only the fields the fron
 5. Tests on the decision math.
 6. `build.py` emitting the three artifacts.
 7. Frontend wired to the artifacts, sliders recomputing live, mobile check.
-8. Render config, README, resume and portfolio copy.
+8. GitHub Pages deploy, README, resume and portfolio copy.
 
 The two stop-for-review checkpoints are where a wrong turn is expensive: a calibration mistake or a backtest bug would undermine the "every number is real" pitch, so those get human eyes before anything is built on top of them.

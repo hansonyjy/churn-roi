@@ -97,13 +97,11 @@ The tree model wins largely because NumOfProducts is sharply nonlinear: 2 produc
 
 ```
 src/              data, OOF calibrated LightGBM, evaluation and SHAP, decision engine, build
-app/main.py       optional FastAPI server for self-hosting, not used by the live demo
 app/static/       the app: index.html, style.css (palette tokens), app.js (live recompute, charts)
 app/static/data/  the three committed artifacts
 tests/            EV math, budget cap, negative-EV exclusion, EV beats random on real data
 docs/             README figures and the scripts that generate them
 .github/          Pages workflow that publishes app/static/
-render.yaml       Render blueprint for the optional self-hosted path
 ```
 
 ## About
