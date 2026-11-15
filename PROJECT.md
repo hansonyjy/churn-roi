@@ -8,7 +8,8 @@ This is a portfolio project. Every reported number must be real, computed on rea
 
 - **No em-dashes anywhere.** Not in code comments, not in the README, not in UI copy. Use commas, periods, or parentheses.
 - **Title Case for headings, never all-caps.**
-- **Clean, minimal, editorial-finance aesthetic** for the frontend. Match the look of hansonyjy.github.io: restrained palette, serif or refined sans display type, generous whitespace, understated. It should read like a research note, not a dashboard template. It must also be readable on a phone, because recruiters click portfolio links on phones.
+- **Production web app look** for the frontend: an app shell (sticky top bar, sticky assumptions panel beside the results, KPI cards, card-framed charts and tables), not a one-column document. Ledger palette (money green accent on a bone ground, deep forest ink, amber for alerts), Archivo for display type, IBM Plex Mono for labels and numbers. The accent is reserved for "the answer" (the recommended action and the money it returns). It must stay readable on a phone, because recruiters click portfolio links on phones: the save list becomes cards under 640px and nothing may scroll sideways.
+- **Every color is a token.** The palette lives in the `:root` block at the top of `app/static/style.css`, and the charts and heat grid in `app.js` read those same tokens at boot. Never hardcode a hex or rgba value elsewhere; change the palette by editing that block.
 - **Custom frontend, not Streamlit.** FastAPI backend serving a static HTML/CSS/JS frontend.
 - **Every metric is real.** Compute on the actual CSV. If a number can't be computed yet, leave a clearly labeled TODO, do not invent it.
 - Concise, conversational tone in all writing.
@@ -143,7 +144,7 @@ You pay `offer_cost` for every offer sent, and you recover value only from custo
 
 ## Phase 3: Frontend and Deploy
 
-**Frontend (`app/static/`).** Editorial-finance research-note aesthetic matching hansonyjy.github.io, readable on mobile. Sections:
+**Frontend (`app/static/`).** Production app shell in the Ledger palette (see Non-Negotiables), readable on mobile. When `style.css` or `app.js` changes, bump the `?v=` query on their links in `index.html`; HTML is served with `Cache-Control: no-cache`, so a fresh page always pulls the matching assets. Sections:
 
 - A short header framing the tool as a retention allocation decision, not a churn score.
 - **Three controls:** offer cost, offer success rate, total budget. Sliders or clean numeric inputs with sensible ranges and formatted values.
@@ -155,7 +156,7 @@ Keep the JavaScript readable and dependency-light. Ship only the fields the fron
 
 **Backend (`app/main.py`).** FastAPI serves the static frontend and artifacts. No inference endpoint. Minimal.
 
-**Deploy.** Train locally, commit the three JSON artifacts, and let Render serve them statically. The CSV is gitignored so Render cannot train, and free-tier build minutes should not be spent on it anyway. `render.yaml` with a plain uvicorn start command, matching the Starbucks app pattern. Note in the README that Render free tier spins down when idle, so the first hit after a quiet period takes about a minute, worth knowing before a live interview demo (open the link five minutes early).
+**Deploy.** Train locally, commit the three JSON artifacts, and let Render serve them statically. The CSV is gitignored so Render cannot train, and free-tier build minutes should not be spent on it anyway. `render.yaml` with a plain uvicorn start command, matching the Starbucks app pattern. Note in the README that Render free tier spins down when idle, so the first hit after a quiet period takes about a minute, worth knowing before a live interview demo (open the link five minutes early). Auto-deploy on push only works while the Render GitHub App has access to this repo (GitHub Settings, Installed GitHub Apps, Render, repository access). It once silently lacked access and the live site sat on the first commit for four months, so if a push does not deploy, check that first.
 
 **README.** Doubles as the portfolio writeup. Include: one-line pitch, the core insight (EV over risk, budget as cap), an architecture diagram (offline training to static serving to client-side recompute), the sensitivity grid with the honest range, how to run locally, the value and incrementality assumptions stated plainly, and a short "what this demonstrates" section (supervised ML, calibration, out-of-fold rigor, decision economics, honest causal reasoning).
 
@@ -163,7 +164,7 @@ Keep the JavaScript readable and dependency-light. Ship only the fields the fron
 
 - [ ] Phase 1: OOF calibrated scoring for all 10,000 customers, real metrics, SHAP readout
 - [ ] Phase 2: value proxy without the zero-balance degeneracy, EV engine, budget-cap selection with negative-EV stop, three-way backtest, sensitivity grid
-- [ ] Phase 3: custom editorial frontend with live sliders and the offers-sent-vs-allowed readout, performance panel, Render config
+- [ ] Phase 3: custom app-shell frontend with live sliders and the offers-sent-vs-allowed readout, performance panel, Render config
 - [ ] README as portfolio writeup with architecture diagram and honest caveats
 - [ ] Tests passing on decision math, budget cap, and negative-EV exclusion
 - [ ] A suggested resume bullet and a short portfolio blurb, both quoting the real grid range
